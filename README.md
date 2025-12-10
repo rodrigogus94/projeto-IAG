@@ -1,116 +1,193 @@
 # Chat Assistente com IA - Projeto IAG
 
-Aplicação web de chat interativo com IA usando Streamlit e OpenAI API. Interface moderna e intuitiva para conversar com modelos de linguagem da OpenAI.
+Aplicação web de chat interativo com IA usando Streamlit e Ollama. Interface moderna e intuitiva para conversar com modelos de linguagem locais através do Ollama, com suporte para transcrição de áudio.
 
 ## Características
 
 - **Interface Moderna**: Interface web responsiva construída com Streamlit
-- **Múltiplos Modelos**: Suporte para GPT-3.5-turbo, GPT-4, GPT-4o e outros
+- **Ollama Integration**: Suporte completo para modelos locais via Ollama
+- **Múltiplos Modelos**: Lista dinamicamente modelos disponíveis no Ollama
+- **Transcrição de Áudio**: Suporte para entrada por voz usando Whisper (local) ou OpenAI API
 - **Histórico Completo**: Mantém contexto completo da conversa
-- **Configuração Flexível**: Suporte para variáveis de ambiente (.env) ou entrada manual
-- **Validações**: Validação automática de API Key e modelos
+- **Configuração Flexível**: Suporte para variáveis de ambiente (.env) ou configuração manual
 - **Arquitetura Modular**: Código organizado e separado por responsabilidades
 
 ## Pré-requisitos
 
 - Python 3.8 ou superior
-- Conta na OpenAI com API Key válida
+- Ollama instalado e rodando (https://ollama.ai/)
 - pip (gerenciador de pacotes Python)
+- (Opcional) OpenAI API Key para transcrição de áudio via API
 
 ## Instalação
 
 1. **Clone ou baixe o projeto**
 
-2. **Instale as dependências:**
+2. **Instale o Ollama** (se ainda não tiver):
+   - Windows/Mac: Baixe de https://ollama.ai/
+   - Linux: `curl -fsSL https://ollama.ai/install.sh | sh`
 
-```bash
-pip install -r requirements.txt
-```
-
-3. **Configure a API Key:**
-
-   Crie um arquivo `.env` na raiz do projeto:
-
-   ```env
-   OPENAI_API_KEY=sk-sua-chave-api-aqui
+3. **Baixe um modelo do Ollama**:
+   ```bash
+   ollama pull llama2
+   # ou
+   ollama pull mistral
+   # ou qualquer outro modelo disponível
    ```
 
-   Ou use o arquivo `.env.example` como referência:
-
+4. **Instale as dependências do Python**:
    ```bash
-   cp .env.example .env
-   # Edite o .env e adicione sua chave
+   pip install -r requirements.txt
+   ```
+
+5. **Configure variáveis de ambiente (opcional)**:
+   
+   Crie um arquivo `.env` na raiz do projeto:
+   ```env
+   OLLAMA_BASE_URL=http://localhost:11434
+   TRANSCRIPTION_METHOD=whisper
+   # Opcional: para transcrição via OpenAI API
+   OPENAI_API_KEY=sk-sua-chave-api-aqui
    ```
 
 ## Como Usar
 
-1. **Inicie a aplicação:**
+1. **Certifique-se de que o Ollama está rodando**:
+   ```bash
+   ollama serve
+   ```
 
-```bash
-streamlit run app.py
-```
+2. **Inicie a aplicação**:
+   ```bash
+   streamlit run app.py
+   ```
 
-2. **Configure a API Key:**
+3. **Configure a conexão**:
+   - Na sidebar, expanda "⚙️ Configurações"
+   - Verifique se a URL do Ollama está correta (padrão: http://localhost:11434)
+   - Clique em "🔄 Reconectar ao Ollama" se necessário
+   - Selecione o modelo desejado (será listado automaticamente)
 
-   - Na sidebar, marque "Usar variáveis de ambiente (.env)" se você configurou o `.env`
-   - Ou desmarque e insira a chave manualmente
-   - Clique em "Inicializar"
-
-3. **Comece a conversar:**
+4. **Comece a conversar**:
    - Digite sua mensagem no campo de input
+   - Ou use o microfone para gravar uma mensagem de voz
    - A IA responderá mantendo o contexto da conversa
-   - Use " Limpar Chat" para reiniciar a conversa
+   - Use "🗑️ Limpar Chat" para reiniciar a conversa
 
 ## Configurações
 
-### Modelos Disponíveis
+### Modelos Ollama
 
-- `gpt-3.5-turbo` - Rápido e econômico
-- `gpt-4` - Mais poderoso e preciso
-- `gpt-4-turbo-preview` - Versão preview do GPT-4
-- `gpt-4o` - Modelo mais recente e otimizado
-- `gpt-4o-mini` - Versão compacta do GPT-4o
+O aplicativo lista automaticamente os modelos disponíveis no seu Ollama. Para baixar novos modelos:
+
+```bash
+ollama pull llama2
+ollama pull mistral
+ollama pull codellama
+# etc.
+```
+
+### Transcrição de Áudio
+
+Dois métodos disponíveis:
+
+1. **Whisper Local** (padrão):
+   - Usa `openai-whisper` instalado localmente
+   - Não requer API Key
+   - Processa localmente (pode ser mais lento)
+
+2. **OpenAI API**:
+   - Usa a API da OpenAI para transcrição
+   - Requer `OPENAI_API_KEY` no `.env`
+   - Mais rápido, mas requer conexão com internet
+
+Configure no menu de configurações ou via variável de ambiente `TRANSCRIPTION_METHOD`.
 
 ### Parâmetros
 
 - **Temperature**: Controla a criatividade (0.0 = determinístico, 2.0 = muito criativo)
-- **Max Tokens**: Limite de tokens na resposta (configurável no código)
+- **Modelo**: Selecione entre os modelos disponíveis no Ollama
 
 ## Estrutura do Projeto
 
 ```
-projeto-sdk-mk00/
+projeto-sdk-mk01/
 ├── app.py              # Interface Streamlit principal
-├── llm_handler.py      # Handler modular para LLM
-├── requirements.txt     # Dependências do projeto
+├── llm_handler.py      # Handler que integra OllamaService
+├── ollama_service.py    # Serviço para comunicação com Ollama
+├── audio_transcriber.py # Módulo de transcrição de áudio
+├── styles.py           # Estilos CSS customizados
+├── requirements.txt    # Dependências do projeto
 ├── .env                # Variáveis de ambiente (criar)
-├── .env.example        # Exemplo de configuração
 └── README.md           # Este arquivo
+```
+
+## Arquitetura
+
+O projeto segue uma arquitetura modular:
+
+- **`app.py`**: Gerencia a interface do usuário, estado da aplicação e interações
+- **`llm_handler.py`**: Adapta OllamaService para a interface esperada pelo app
+- **`ollama_service.py`**: Encapsula toda a lógica de comunicação com a API do Ollama
+- **`audio_transcriber.py`**: Gerencia transcrição de áudio (Whisper/OpenAI)
+- **`styles.py`**: Centraliza todos os estilos CSS customizados
+
+## Solução de Problemas
+
+### Ollama não conecta
+
+1. Verifique se o Ollama está rodando:
+   ```bash
+   ollama list
+   ```
+
+2. Verifique a URL nas configurações (padrão: http://localhost:11434)
+
+3. Se estiver usando Docker ou servidor remoto, ajuste a URL
+
+### Nenhum modelo disponível
+
+1. Baixe pelo menos um modelo:
+   ```bash
+   ollama pull llama2
+   ```
+
+2. Clique em "🔄 Reconectar ao Ollama" nas configurações
+
+### Transcrição de áudio não funciona
+
+1. **Para Whisper local**:
+   - Verifique se `openai-whisper` está instalado: `pip install openai-whisper`
+   - O primeiro uso pode demorar (baixa o modelo)
+
+2. **Para OpenAI API**:
+   - Verifique se `OPENAI_API_KEY` está configurada no `.env`
+   - Verifique sua conexão com a internet
+
+### Erro ao importar módulos
+
+Certifique-se de que todas as dependências estão instaladas:
+```bash
+pip install -r requirements.txt
 ```
 
 ## Segurança
 
 - **Nunca** commite o arquivo `.env` no controle de versão
-- Mantenha sua API Key segura e privada
-- O arquivo `.env` está no `.gitignore` por padrão
-- A API Key é ocultada na interface (tipo password)
+- Mantenha suas API Keys seguras e privadas
+- O arquivo `.env` deve estar no `.gitignore` por padrão
+- O Ollama roda localmente por padrão (sem exposição externa)
 
 ## Desenvolvimento
-
-### Arquitetura
-
-O projeto segue uma arquitetura modular:
-
-- **`app.py`**: Gerencia a interface do usuário, estado da aplicação e interações
-- **`llm_handler.py`**: Encapsula toda a lógica de comunicação com a API da OpenAI
 
 ### Melhorias Futuras
 
 - [ ] Suporte para streaming de respostas
 - [ ] Exportação de conversas
 - [ ] Temas personalizáveis
-- [ ] Suporte para múltiplos provedores de LLM
 - [ ] Histórico persistente em banco de dados
+- [ ] Suporte para múltiplos provedores de LLM
+- [ ] Interface para gerenciar modelos Ollama
 
 ## Licença
 
@@ -124,15 +201,17 @@ Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou pull r
 
 Para problemas ou dúvidas:
 
-1. Verifique se a API Key está configurada corretamente
+1. Verifique se o Ollama está rodando e acessível
 2. Confirme que todas as dependências estão instaladas
 3. Verifique os logs de erro na interface
+4. Consulte a documentação do Ollama: https://github.com/ollama/ollama
 
 ## Agradecimentos
 
 - [Streamlit](https://streamlit.io/) pela excelente framework
-- [OpenAI](https://openai.com/) pela API de linguagem
+- [Ollama](https://ollama.ai/) pela plataforma de modelos locais
+- [OpenAI Whisper](https://github.com/openai/whisper) pela transcrição de áudio
 
 ---
 
-Desenvolvido com usando Streamlit e OpenAI API
+Desenvolvido com Streamlit e Ollama

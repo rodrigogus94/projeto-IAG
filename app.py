@@ -38,37 +38,616 @@ st.set_page_config(
 if CUSTOM_CSS:
     st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
-# Adicionar CSS específico para alternância microfone/seta
+
+# CSS dinâmico para tema escuro/claro
+def get_theme_css(theme):
+    """Retorna CSS baseado no tema selecionado"""
+    if theme == "escuro":
+        return """
+        <style>
+        /* Tema Escuro - Cobertura Completa */
+        
+        /* Base - HTML e Body */
+        html, body {
+            background-color: #1e1e1e !important;
+            color: #e0e0e0 !important;
+        }
+        
+        /* Aplicação principal */
+        .stApp {
+            background-color: #1e1e1e !important;
+            color: #e0e0e0 !important;
+        }
+        
+        /* Container principal */
+        .main .block-container {
+            background-color: #1e1e1e !important;
+            color: #e0e0e0 !important;
+        }
+        
+        /* Sidebar completa */
+        [data-testid="stSidebar"] {
+            background-color: #2d2d2d !important;
+            color: #e0e0e0 !important;
+        }
+        
+        [data-testid="stSidebar"] > div {
+            background-color: #2d2d2d !important;
+        }
+        
+        [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+            background-color: #2d2d2d !important;
+        }
+        
+        /* Texto geral - cobertura ampla */
+        .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
+        .stApp p, .stApp div, .stApp span, .stApp label,
+        [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2,
+        [data-testid="stSidebar"] h3, [data-testid="stSidebar"] p,
+        [data-testid="stSidebar"] div, [data-testid="stSidebar"] span,
+        [data-testid="stSidebar"] label {
+            color: #e0e0e0 !important;
+        }
+        
+        /* Inputs de texto */
+        .stTextInput > div > div > input {
+            background-color: #3d3d3d !important;
+            color: #e0e0e0 !important;
+            border-color: #555 !important;
+        }
+        
+        .stTextInput > div > div > input::placeholder {
+            color: #999 !important;
+        }
+        
+        /* Selectbox */
+        .stSelectbox > div > div {
+            background-color: #3d3d3d !important;
+            color: #e0e0e0 !important;
+        }
+        
+        .stSelectbox > div > div > div {
+            background-color: #3d3d3d !important;
+            color: #e0e0e0 !important;
+        }
+        
+        /* Slider */
+        .stSlider > div > div {
+            color: #e0e0e0 !important;
+        }
+        
+        .stSlider label {
+            color: #e0e0e0 !important;
+        }
+        
+        /* Mensagens de chat */
+        .chat-message {
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 0.6rem 0;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .chat-message.user-message {
+            background-color: #3d3d3d !important;
+            color: #e0e0e0 !important;
+        }
+        
+        .chat-message.assistant-message {
+            background-color: #2d4a5e !important;
+            color: #e0e0e0 !important;
+        }
+        
+        .empty-chat-message {
+            text-align: center;
+            color: #888 !important;
+            padding: 2.5rem 1rem;
+            font-size: 0.95rem;
+        }
+        
+        /* Mensagem de boas-vindas */
+        .welcome-message {
+            background-color: #3d3d3d !important;
+            color: #e0e0e0 !important;
+            border-left-color: #667eea !important;
+        }
+        
+        /* Sidebar header - manter gradiente mas ajustar texto */
+        .sidebar-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        }
+        
+        /* Status container */
+        .status-container {
+            background-color: #3d3d3d !important;
+            border-color: #555 !important;
+        }
+        
+        .status-item {
+            border-bottom-color: #555 !important;
+        }
+        
+        .status-label {
+            color: #b0b0b0 !important;
+        }
+        
+        .status-value {
+            color: #e0e0e0 !important;
+        }
+        
+        /* Expander */
+        [data-testid="stExpander"] {
+            background-color: #2d2d2d !important;
+        }
+        
+        .streamlit-expanderHeader {
+            background-color: #2d2d2d !important;
+            color: #e0e0e0 !important;
+        }
+        
+        .streamlit-expanderContent {
+            background-color: #2d2d2d !important;
+            color: #e0e0e0 !important;
+        }
+        
+        /* Chat messages do Streamlit */
+        [data-testid="stChatMessage"] {
+            background-color: transparent !important;
+        }
+        
+        [data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] {
+            color: #e0e0e0 !important;
+        }
+        
+        /* Área vazia do dashboard */
+        .empty-text {
+            color: #b0b0b0 !important;
+        }
+        
+        .empty-text-secondary {
+            color: #888 !important;
+        }
+        
+        /* Sobrescrever cores inline na área vazia */
+        div[style*="color: #999"] {
+            color: #888 !important;
+        }
+        
+        div[style*="color: #666"] {
+            color: #b0b0b0 !important;
+        }
+        
+        /* Info boxes */
+        [data-testid="stAlert"] {
+            background-color: #2d4a5e !important;
+        }
+        
+        .stInfo {
+            background-color: #2d4a5e !important;
+            color: #e0e0e0 !important;
+        }
+        
+        .stInfo > div {
+            color: #e0e0e0 !important;
+        }
+        
+        /* Success boxes */
+        .stSuccess {
+            background-color: #1e4d2e !important;
+            color: #e0e0e0 !important;
+        }
+        
+        .stSuccess > div {
+            color: #e0e0e0 !important;
+        }
+        
+        /* Warning boxes */
+        .stWarning {
+            background-color: #4d3d1e !important;
+            color: #e0e0e0 !important;
+        }
+        
+        .stWarning > div {
+            color: #e0e0e0 !important;
+        }
+        
+        /* Error boxes */
+        .stError {
+            background-color: #4d1e1e !important;
+            color: #e0e0e0 !important;
+        }
+        
+        .stError > div {
+            color: #e0e0e0 !important;
+        }
+        
+        /* Markdown */
+        .stMarkdown {
+            color: #e0e0e0 !important;
+        }
+        
+        .stMarkdown p, .stMarkdown li, .stMarkdown ul, .stMarkdown ol {
+            color: #e0e0e0 !important;
+        }
+        
+        /* Indicador de pensando */
+        .thinking-above-prompt {
+            background-color: rgba(102, 126, 234, 0.2) !important;
+            color: #a0b4ff !important;
+        }
+        
+        /* Chat input */
+        [data-testid="stChatInput"] textarea {
+            background-color: #3d3d3d !important;
+            color: #e0e0e0 !important;
+            border-color: #555 !important;
+        }
+        
+        [data-testid="stChatInput"] textarea::placeholder {
+            color: #999 !important;
+        }
+        
+        /* Audio input */
+        [data-testid="stAudioInput"] {
+            background-color: transparent !important;
+        }
+        
+        /* Botões */
+        .stButton > button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white !important;
+        }
+        
+        /* Checkbox */
+        .stCheckbox label {
+            color: #e0e0e0 !important;
+        }
+        
+        /* Divider */
+        hr {
+            border-color: #555 !important;
+        }
+        
+        /* Code blocks */
+        code {
+            background-color: #2d2d2d !important;
+            color: #a0ffa0 !important;
+        }
+        
+        pre {
+            background-color: #2d2d2d !important;
+            color: #e0e0e0 !important;
+        }
+        
+        /* Container e elementos gerais */
+        [data-testid="stVerticalBlock"] {
+            color: #e0e0e0 !important;
+        }
+        
+        /* Elementos de coluna */
+        [data-testid="column"] {
+            color: #e0e0e0 !important;
+        }
+        
+        /* Links */
+        a {
+            color: #a0b4ff !important;
+        }
+        
+        a:hover {
+            color: #667eea !important;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #2d2d2d !important;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #555 !important;
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #666 !important;
+        }
+        
+        /* Sobrescrever TODOS os elementos de texto - cobertura universal */
+        * {
+            color: inherit;
+        }
+        
+        /* Área principal completa */
+        .main {
+            background-color: #1e1e1e !important;
+        }
+        
+        .main > div {
+            background-color: #1e1e1e !important;
+        }
+        
+        /* Todos os containers e blocos */
+        [data-testid="stAppViewContainer"] {
+            background-color: #1e1e1e !important;
+        }
+        
+        [data-testid="stAppViewContainer"] > div {
+            background-color: #1e1e1e !important;
+        }
+        
+        /* Elementos de texto universais */
+        .main *,
+        [data-testid="stSidebar"] * {
+            color: #e0e0e0 !important;
+        }
+        
+        /* Exceções para elementos específicos que devem manter suas cores */
+        .sidebar-header,
+        .sidebar-header * {
+            color: white !important;
+        }
+        
+        /* Sobrescrever estilos do styles.py */
+        .welcome-message {
+            background: #3d3d3d !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+        }
+        
+        .status-container {
+            background: #3d3d3d !important;
+            border: 1px solid #555 !important;
+        }
+        
+        .empty-text {
+            color: #b0b0b0 !important;
+        }
+        
+        .empty-text-secondary {
+            color: #888 !important;
+        }
+        
+        /* Área vazia do dashboard */
+        .empty-dashboard {
+            background-color: transparent !important;
+        }
+        
+        .empty-dashboard * {
+            color: #b0b0b0 !important;
+        }
+        
+        /* Selectbox dropdown */
+        .stSelectbox [data-baseweb="select"] {
+            background-color: #3d3d3d !important;
+        }
+        
+        .stSelectbox [data-baseweb="popover"] {
+            background-color: #3d3d3d !important;
+        }
+        
+        /* Slider completo */
+        .stSlider [data-baseweb="slider"] {
+            color: #e0e0e0 !important;
+        }
+        
+        /* Todos os elementos de formulário */
+        input, textarea, select {
+            background-color: #3d3d3d !important;
+            color: #e0e0e0 !important;
+            border-color: #555 !important;
+        }
+        
+        /* Elementos específicos do Streamlit que podem estar escondidos */
+        section[data-testid="stSidebar"] {
+            background-color: #2d2d2d !important;
+        }
+        
+        /* Garantir que divs inline com cores sejam sobrescritas */
+        div[style*="background: white"],
+        div[style*="background-color: white"],
+        div[style*="background: #fff"],
+        div[style*="background-color: #fff"],
+        div[style*="background: #ffffff"],
+        div[style*="background-color: #ffffff"] {
+            background-color: #3d3d3d !important;
+        }
+        
+        div[style*="background: #f8f9fa"],
+        div[style*="background-color: #f8f9fa"] {
+            background-color: #3d3d3d !important;
+        }
+        
+        /* Sobrescrever cores de texto inline */
+        div[style*="color: #666"],
+        span[style*="color: #666"],
+        p[style*="color: #666"] {
+            color: #b0b0b0 !important;
+        }
+        
+        div[style*="color: #999"],
+        span[style*="color: #999"],
+        p[style*="color: #999"] {
+            color: #888 !important;
+        }
+        
+        /* Elementos de lista */
+        ul, ol, li {
+            color: #e0e0e0 !important;
+        }
+        
+        /* Strong e em */
+        strong, b, em, i {
+            color: #e0e0e0 !important;
+        }
+        
+        /* Headers dentro de markdown */
+        .stMarkdown h1,
+        .stMarkdown h2,
+        .stMarkdown h3,
+        .stMarkdown h4,
+        .stMarkdown h5,
+        .stMarkdown h6 {
+            color: #e0e0e0 !important;
+        }
+        </style>
+        """
+    else:
+        return """
+        <style>
+        /* Tema Claro - Resetar estilos do tema escuro e restaurar padrão */
+        html, body {
+            background-color: #ffffff !important;
+            color: inherit !important;
+        }
+        
+        .stApp {
+            background-color: #ffffff !important;
+            color: inherit !important;
+        }
+        
+        .main {
+            background-color: #ffffff !important;
+        }
+        
+        .main .block-container {
+            background-color: transparent !important;
+            color: inherit !important;
+        }
+        
+        [data-testid="stSidebar"] {
+            background-color: #ffffff !important;
+            color: inherit !important;
+        }
+        
+        [data-testid="stSidebar"] > div {
+            background-color: #ffffff !important;
+        }
+        
+        /* Remover sobrescritas universais de texto */
+        .main *,
+        [data-testid="stSidebar"] * {
+            color: inherit !important;
+        }
+        
+        /* Restaurar cores padrão dos elementos customizados */
+        .welcome-message {
+            background: white !important;
+            color: inherit !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+        }
+        
+        .status-container {
+            background: #f8f9fa !important;
+            border: 1px solid #e0e0e0 !important;
+        }
+        
+        .status-label {
+            color: #666 !important;
+        }
+        
+        .status-value {
+            color: inherit !important;
+        }
+        
+        .empty-text {
+            color: #666 !important;
+        }
+        
+        .empty-text-secondary {
+            color: #999 !important;
+        }
+        
+        /* Inputs voltam ao padrão */
+        input, textarea, select {
+            background-color: white !important;
+            color: inherit !important;
+            border-color: #e0e0e0 !important;
+        }
+        
+        .stTextInput > div > div > input {
+            background-color: white !important;
+            border-color: #e0e0e0 !important;
+        }
+        
+        .stSelectbox > div > div {
+            background-color: white !important;
+        }
+        
+        [data-testid="stChatInput"] textarea {
+            background-color: white !important;
+            border-color: #e0e0e0 !important;
+        }
+        
+        /* Estilos para mensagens de chat */
+        .chat-message {
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 0.6rem 0;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .chat-message.user-message {
+            background-color: #f0f0f0 !important;
+            color: #333 !important;
+        }
+        
+        .chat-message.assistant-message {
+            background-color: #e8f4f8 !important;
+            color: #333 !important;
+        }
+        
+        .empty-chat-message {
+            text-align: center;
+            color: #999 !important;
+            padding: 2.5rem 1rem;
+            font-size: 0.95rem;
+        }
+        </style>
+        """
+
+
+# Inicializar tema antes de usar
+if "theme" not in st.session_state:
+    st.session_state.theme = "claro"  # "claro" ou "escuro"
+
+# Aplicar CSS do tema
+st.markdown(get_theme_css(st.session_state.theme), unsafe_allow_html=True)
+
+# CSS SIMPLIFICADO para alternância microfone/seta
 st.markdown(
     """
 <style>
-/* Container principal para chat input */
+/* Container para posicionar elementos */
 .chat-input-wrapper {
-    position: relative;
-    width: 100%;
+    position: relative !important;
+    width: 100% !important;
 }
 
-/* Esconder completamente o label do audio input */
-div[data-testid="stAudioInput"] label {
-    display: none !important;
-}
-
-/* Posicionar o audio input ao lado do botão de envio */
-div[data-testid="stAudioInput"] {
+/* Posicionar o audio input sobre o botão de envio */
+.chat-input-wrapper > div[data-testid="stAudioInput"] {
     position: absolute !important;
     right: 45px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
-    z-index: 1000 !important;
+    z-index: 100 !important;
     width: auto !important;
 }
 
-/* Estilizar o botão do audio input */
-div[data-testid="stAudioInput"] button {
+/* Esconder label do audio input */
+.chat-input-wrapper > div[data-testid="stAudioInput"] label {
+    display: none !important;
+}
+
+/* Estilizar o botão do microfone */
+.chat-input-wrapper > div[data-testid="stAudioInput"] button {
     background: transparent !important;
     border: none !important;
     padding: 8px !important;
-    min-width: 40px !important;
     width: 40px !important;
     height: 40px !important;
     border-radius: 50% !important;
@@ -80,121 +659,91 @@ div[data-testid="stAudioInput"] button {
     transition: all 0.2s ease !important;
 }
 
-div[data-testid="stAudioInput"] button:hover {
+.chat-input-wrapper > div[data-testid="stAudioInput"] button:hover {
     background: rgba(102, 126, 234, 0.1) !important;
     color: #667eea !important;
 }
 
-/* Ocultar microfone quando há texto */
-.hide-microphone div[data-testid="stAudioInput"] {
+/* Esconder microfone quando há texto */
+.chat-input-wrapper.has-text > div[data-testid="stAudioInput"] {
     opacity: 0 !important;
     pointer-events: none !important;
 }
 
-/* Mostrar microfone quando não há texto */
-.show-microphone div[data-testid="stAudioInput"] {
-    opacity: 1 !important;
-    pointer-events: all !important;
-}
-
-/* Ocultar seta de envio quando não há texto */
-.hide-send-button button[aria-label="Send"] {
+/* Esconder seta de envio quando não há texto */
+.chat-input-wrapper:not(.has-text) button[data-testid="baseButton-secondary"] {
     opacity: 0 !important;
     pointer-events: none !important;
 }
 
-/* Mostrar seta de envio quando há texto */
-.show-send-button button[aria-label="Send"] {
+/* Mostrar seta quando há texto */
+.chat-input-wrapper.has-text button[data-testid="baseButton-secondary"] {
     opacity: 1 !important;
     pointer-events: all !important;
-}
-
-/* Indicador de pensando */
-.thinking-indicator {
-    text-align: center;
-    color: #667eea;
-    font-style: italic;
-    margin: 10px 0;
-    padding: 8px;
-    background: rgba(102, 126, 234, 0.1);
-    border-radius: 8px;
-    font-size: 0.9rem;
 }
 </style>
 """,
     unsafe_allow_html=True,
 )
 
-# JavaScript para alternância microfone/seta
+# JavaScript SIMPLIFICADO para detectar texto no input
 st.markdown(
     """
 <script>
-// Função para configurar a alternância
-function setupMicrophoneToggle() {
-    // Encontrar todos os containers de chat
-    const chatInputs = document.querySelectorAll('[data-testid="stChatInput"]');
-    
-    chatInputs.forEach((chatInput, index) => {
-        // Criar wrapper se não existir
-        let wrapper = chatInput.closest('.chat-input-wrapper');
-        if (!wrapper) {
-            wrapper = document.createElement('div');
-            wrapper.className = 'chat-input-wrapper hide-send-button show-microphone';
-            chatInput.parentNode.insertBefore(wrapper, chatInput);
-            wrapper.appendChild(chatInput);
-        }
+// Função para configurar a detecção de texto
+function setupTextDetection() {
+    // Aguardar um pouco para garantir que os elementos estejam carregados
+    setTimeout(() => {
+        // Encontrar todos os inputs de chat
+        const chatInputs = document.querySelectorAll('[data-testid="stChatInput"] input');
         
-        // Encontrar elementos
-        const textInput = chatInput.querySelector('input[type="text"]');
-        const sendButton = chatInput.querySelector('button[aria-label="Send"]');
-        
-        if (!textInput || !sendButton) return;
-        
-        // Função para atualizar visibilidade
-        function updateVisibility() {
-            const hasText = textInput.value.trim().length > 0;
-            
-            if (hasText) {
-                // Tem texto: mostrar seta, ocultar microfone
-                wrapper.classList.remove('hide-send-button');
-                wrapper.classList.add('show-send-button');
-                wrapper.classList.add('hide-microphone');
-                wrapper.classList.remove('show-microphone');
-            } else {
-                // Sem texto: mostrar microfone, ocultar seta
-                wrapper.classList.add('hide-send-button');
-                wrapper.classList.remove('show-send-button');
-                wrapper.classList.remove('hide-microphone');
-                wrapper.classList.add('show-microphone');
+        chatInputs.forEach((input, index) => {
+            // Encontrar o wrapper mais próximo
+            let wrapper = input.closest('.chat-input-wrapper');
+            if (!wrapper) {
+                // Criar wrapper se não existir
+                wrapper = document.createElement('div');
+                wrapper.className = 'chat-input-wrapper';
+                input.parentElement.parentElement.parentElement.insertBefore(wrapper, input.parentElement.parentElement);
+                wrapper.appendChild(input.parentElement.parentElement);
+                
+                // Tentar encontrar o audio input correspondente e mover para o wrapper
+                const audioInputs = document.querySelectorAll('[data-testid="stAudioInput"]');
+                if (audioInputs[index]) {
+                    wrapper.appendChild(audioInputs[index]);
+                }
             }
-        }
-        
-        // Configurar listeners
-        textInput.addEventListener('input', updateVisibility);
-        textInput.addEventListener('keyup', updateVisibility);
-        
-        // Atualizar inicialmente
-        updateVisibility();
-        
-        // Verificar periodicamente (fallback)
-        setInterval(updateVisibility, 500);
-    });
+            
+            // Função para atualizar o estado
+            function updateState() {
+                if (input.value.trim().length > 0) {
+                    wrapper.classList.add('has-text');
+                } else {
+                    wrapper.classList.remove('has-text');
+                }
+            }
+            
+            // Configurar listeners
+            input.addEventListener('input', updateState);
+            input.addEventListener('keyup', updateState);
+            input.addEventListener('change', updateState);
+            
+            // Estado inicial
+            updateState();
+        });
+    }, 500);
 }
 
-// Executar quando o DOM estiver pronto
+// Executar quando a página carrega
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupMicrophoneToggle);
+    document.addEventListener('DOMContentLoaded', setupTextDetection);
 } else {
-    setTimeout(setupMicrophoneToggle, 1000);
+    setupTextDetection();
 }
 
-// Reexecutar quando o Streamlit atualizar a página
-let observer = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
-        if (mutation.addedNodes.length > 0) {
-            setTimeout(setupMicrophoneToggle, 500);
-        }
-    });
+// Executar também quando houver mudanças (Streamlit reruns)
+const observer = new MutationObserver(() => {
+    setTimeout(setupTextDetection, 300);
 });
 
 observer.observe(document.body, {
@@ -280,18 +829,20 @@ with st.sidebar:
         if st.session_state.messages:
             for message in st.session_state.messages:
                 if message["role"] == "user":
+                    # Usar classe CSS que será estilizada pelo tema
                     st.markdown(
-                        f'<div class="chat-message" style="background: #f0f0f0;"><strong>Você:</strong> {message["content"]}</div>',
+                        f'<div class="chat-message user-message"><strong>Você:</strong> {message["content"]}</div>',
                         unsafe_allow_html=True,
                     )
                 else:
+                    # Usar classe CSS que será estilizada pelo tema
                     st.markdown(
-                        f'<div class="chat-message" style="background: #e8f4f8;"><strong>Assistente:</strong> {message["content"]}</div>',
+                        f'<div class="chat-message assistant-message"><strong>Assistente:</strong> {message["content"]}</div>',
                         unsafe_allow_html=True,
                     )
         else:
             st.markdown(
-                '<div style="text-align: center; color: #999; padding: 2.5rem 1rem; font-size: 0.95rem;">Nenhuma mensagem ainda</div>',
+                '<div class="empty-chat-message">Nenhuma mensagem ainda</div>',
                 unsafe_allow_html=True,
             )
 
@@ -300,19 +851,16 @@ with st.sidebar:
     # Mostrar indicador de pensando acima do prompt se estiver pensando
     if st.session_state.is_thinking:
         st.markdown(
-            '<div class="thinking-indicator">💭 <em>Pensando...</em></div>',
+            '<div class="thinking-above-prompt">💭 <em>Pensando...</em></div>',
             unsafe_allow_html=True,
         )
 
-    # Container integrado para prompt e microfone
-    user_input = None
-    audio_file = None
-
+    # Container integrado para prompt e microfone - SIMPLIFICADO
     if not st.session_state.prompt_in_center:
         # Input de mensagem usando chat_input
         user_input = st.chat_input("Digite sua mensagem...", key="sidebar_chat_input")
 
-        # Microfone posicionado ao lado do botão de envio via CSS
+        # Microfone posicionado via CSS
         audio_file = st.audio_input(
             "🎙️", key="sidebar_audio", help="Clique para gravar uma mensagem de voz"
         )
@@ -347,6 +895,10 @@ with st.sidebar:
                 if not user_input:
                     user_input = st.session_state.audio_transcribed
                     st.session_state.audio_transcribed = None  # Limpar após usar
+
+    else:
+        # Placeholder para manter estrutura quando prompt está no centro
+        user_input = None
 
     st.markdown("---")
 
@@ -478,6 +1030,21 @@ with st.sidebar:
                 "💡 Dica: Se esconder a sidebar, ative esta opção para mover o prompt para o centro."
             )
 
+        st.markdown("---")
+
+        # Configuração de tema
+        st.markdown("### 🎨 Aparência")
+        theme = st.selectbox(
+            "Tema da página",
+            ["claro", "escuro"],
+            index=0 if st.session_state.theme == "claro" else 1,
+            help="Escolha entre tema claro ou escuro",
+        )
+
+        if theme != st.session_state.theme:
+            st.session_state.theme = theme
+            st.rerun()
+
         # Botão limpar chat
         if st.button("🗑️ Limpar Chat", use_container_width=True):
             st.session_state.messages = []
@@ -565,8 +1132,8 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
 
-# Processar mensagem quando enviada da sidebar (texto ou áudio transcrito)
-if user_input:
+# Processar mensagem quando enviada (texto ou áudio transcrito)
+if "user_input" in locals() and user_input:
     if (
         st.session_state.llm_handler is None
         or not st.session_state.llm_handler.is_configured()
@@ -693,11 +1260,11 @@ with main_area:
         # Mostrar indicador de pensando acima do prompt se estiver pensando
         if st.session_state.is_thinking:
             st.markdown(
-                '<div class="thinking-indicator">💭 <em>Pensando...</em></div>',
+                '<div class="thinking-above-prompt">💭 <em>Pensando...</em></div>',
                 unsafe_allow_html=True,
             )
 
-        # Input de mensagem no centro
+        # Input de mensagem usando chat_input no centro
         center_user_input = st.chat_input(
             "Digite sua mensagem no centro...", key="center_chat_input"
         )
