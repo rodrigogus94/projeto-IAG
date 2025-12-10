@@ -1,8 +1,8 @@
-# 💬 Chat Assistente com IA
+# Chat Assistente com IA - Projeto IAG
 
 Aplicação web de chat interativo com IA usando Streamlit e OpenAI API. Interface moderna e intuitiva para conversar com modelos de linguagem da OpenAI.
 
-## 🚀 Características
+## Características
 
 - **Interface Moderna**: Interface web responsiva construída com Streamlit
 - **Múltiplos Modelos**: Suporte para GPT-3.5-turbo, GPT-4, GPT-4o e outros
@@ -11,13 +11,13 @@ Aplicação web de chat interativo com IA usando Streamlit e OpenAI API. Interfa
 - **Validações**: Validação automática de API Key e modelos
 - **Arquitetura Modular**: Código organizado e separado por responsabilidades
 
-## 📋 Pré-requisitos
+## Pré-requisitos
 
 - Python 3.8 ou superior
 - Conta na OpenAI com API Key válida
 - pip (gerenciador de pacotes Python)
 
-## 🔧 Instalação
+## Instalação
 
 1. **Clone ou baixe o projeto**
 
@@ -39,7 +39,7 @@ pip install -r requirements.txt
    # Edite o .env e adicione sua chave
    ```
 
-## 🎯 Como Usar
+## Como Usar
 
 1. **Inicie a aplicação:**
 ```bash
@@ -49,14 +49,14 @@ streamlit run app.py
 2. **Configure a API Key:**
    - Na sidebar, marque "Usar variáveis de ambiente (.env)" se você configurou o `.env`
    - Ou desmarque e insira a chave manualmente
-   - Clique em "🔄 Inicializar"
+   - Clique em "Inicializar"
 
 3. **Comece a conversar:**
    - Digite sua mensagem no campo de input
    - A IA responderá mantendo o contexto da conversa
-   - Use "🗑️ Limpar Chat" para reiniciar a conversa
+   - Use " Limpar Chat" para reiniciar a conversa
 
-## ⚙️ Configurações
+##  Configurações
 
 ### Modelos Disponíveis
 - `gpt-3.5-turbo` - Rápido e econômico
@@ -69,7 +69,7 @@ streamlit run app.py
 - **Temperature**: Controla a criatividade (0.0 = determinístico, 2.0 = muito criativo)
 - **Max Tokens**: Limite de tokens na resposta (configurável no código)
 
-## 📁 Estrutura do Projeto
+##  Estrutura do Projeto
 
 ```
 projeto-sdk-mk00/
@@ -81,14 +81,14 @@ projeto-sdk-mk00/
 └── README.md           # Este arquivo
 ```
 
-## 🔐 Segurança
+##  Segurança
 
-- ⚠️ **Nunca** commite o arquivo `.env` no controle de versão
-- ⚠️ Mantenha sua API Key segura e privada
-- ✅ O arquivo `.env` está no `.gitignore` por padrão
-- ✅ A API Key é ocultada na interface (tipo password)
+-  **Nunca** commite o arquivo `.env` no controle de versão
+-  Mantenha sua API Key segura e privada
+-  O arquivo `.env` está no `.gitignore` por padrão
+-  A API Key é ocultada na interface (tipo password)
 
-## 🛠️ Desenvolvimento
+##  Desenvolvimento
 
 ### Arquitetura
 
@@ -105,27 +105,26 @@ O projeto segue uma arquitetura modular:
 - [ ] Suporte para múltiplos provedores de LLM
 - [ ] Histórico persistente em banco de dados
 
-## 📝 Licença
+##  Licença
 
 Este projeto é de código aberto e está disponível para uso educacional e pessoal.
 
-## 🤝 Contribuindo
+##  Contribuindo
 
 Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou pull requests.
 
-## 📞 Suporte
+##  Suporte
 
 Para problemas ou dúvidas:
 1. Verifique se a API Key está configurada corretamente
 2. Confirme que todas as dependências estão instaladas
 3. Verifique os logs de erro na interface
 
-## 🙏 Agradecimentos
+##  Agradecimentos
 
 - [Streamlit](https://streamlit.io/) pela excelente framework
 - [OpenAI](https://openai.com/) pela API de linguagem
 
 ---
 
-Desenvolvido com ❤️ usando Streamlit e OpenAI API
-
+Desenvolvido com  usando Streamlit e OpenAI API
