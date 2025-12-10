@@ -7,9 +7,9 @@ import sys
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
 
-# Diretório para logs
-LOG_DIR = Path("logs")
-LOG_DIR.mkdir(exist_ok=True)
+# Diretório para logs (relativo à raiz do projeto)
+LOG_DIR = Path("data/logs")
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 # Arquivo de log
 LOG_FILE = LOG_DIR / "app.log"

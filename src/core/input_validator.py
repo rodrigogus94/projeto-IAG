@@ -5,7 +5,7 @@ Módulo para validação de inputs do usuário antes de enviar ao modelo
 import logging
 import re
 from typing import Optional, Tuple, Dict, Any
-from model_config import VALIDATION_RULES
+from src.config.model_config import VALIDATION_RULES
 
 # Configurar logger
 logger = logging.getLogger(__name__)

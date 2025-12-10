@@ -20,7 +20,7 @@ class OllamaService:
         # Usar timeout de model_config se não fornecido
         if timeout is None:
             try:
-                from model_config import MODEL_RULES
+                from src.config.model_config import MODEL_RULES
 
                 timeout = MODEL_RULES.get("timeout_seconds", 60)
             except ImportError:
@@ -210,3 +210,4 @@ class OllamaService:
         except Exception as e:
             logger.error(f"Erro inesperado no chat: {str(e)}", exc_info=True)
             raise Exception(f"Erro no chat: {str(e)}") from e
+

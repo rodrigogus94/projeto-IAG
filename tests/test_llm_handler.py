@@ -3,8 +3,14 @@ Testes unitários para OllamaLLMHandler
 """
 
 import unittest
+import sys
+import os
 from unittest.mock import Mock, patch, MagicMock
-from llm_handler import OllamaLLMHandler, create_llm_handler
+
+# Adicionar diretório raiz ao path para imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+from src.core.llm_handler import OllamaLLMHandler, create_llm_handler
 
 
 class TestOllamaLLMHandler(unittest.TestCase):

@@ -1,15 +1,23 @@
 # app.py - Layout moderno com sidebar de chat
 import streamlit as st
 import os
+import sys
+from pathlib import Path
 from typing import Optional
 from dotenv import load_dotenv
+
+# Adicionar diretório raiz do projeto ao Python path
+# Isso permite que os imports de src.core e src.config funcionem
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 # Carrega variáveis de ambiente do arquivo .env
 load_dotenv()
 
 # Configurar logging
 try:
-    from logging_config import setup_logging, get_logger
+    from src.config.logging_config import setup_logging, get_logger
 
     setup_logging(level=os.getenv("LOG_LEVEL", "INFO"), log_to_console=False)
     logger = get_logger(__name__)
@@ -22,11 +30,11 @@ except ImportError:
 
 # Imports dos módulos customizados
 try:
-    from llm_handler import create_llm_handler
-    from audio_transcriber import transcribe_audio
-    from styles import CUSTOM_CSS
-    from input_validator import validate_user_input, sanitize_input
-    from history_manager import (
+    from src.core.llm_handler import create_llm_handler
+    from src.core.audio_transcriber import transcribe_audio
+    from src.config.styles import CUSTOM_CSS
+    from src.core.input_validator import validate_user_input, sanitize_input
+    from src.core.history_manager import (
         save_history,
         load_history,
         list_history_sessions,
@@ -798,7 +806,7 @@ if "llm_handler" not in st.session_state:
 
 # Importar configurações do modelo
 try:
-    from model_config import DEFAULT_MODEL, DEFAULT_TEMPERATURE
+    from src.config.model_config import DEFAULT_MODEL, DEFAULT_TEMPERATURE
 except ImportError:
     DEFAULT_MODEL = "llama2:latest"
     DEFAULT_TEMPERATURE = 0.7
@@ -826,7 +834,7 @@ if "transcription_method" not in st.session_state:
 
 # Configurar timeout (pode ser definido via variável de ambiente ou model_config)
 try:
-    from model_config import MODEL_RULES
+    from src.config.model_config import MODEL_RULES
 
     DEFAULT_TIMEOUT = MODEL_RULES.get("timeout_seconds", 120)
 except ImportError:

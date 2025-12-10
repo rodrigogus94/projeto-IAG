@@ -1,0 +1,4 @@
+"""
+Módulos core da aplicação
+"""
+

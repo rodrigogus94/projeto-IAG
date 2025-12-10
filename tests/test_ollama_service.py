@@ -3,9 +3,15 @@ Testes unitários para OllamaService
 """
 
 import unittest
+import sys
+import os
 from unittest.mock import Mock, patch, MagicMock
 import requests
-from ollama_service import OllamaService
+
+# Adicionar diretório raiz ao path para imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+from src.core.ollama_service import OllamaService
 
 
 class TestOllamaService(unittest.TestCase):

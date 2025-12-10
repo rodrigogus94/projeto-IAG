@@ -12,9 +12,9 @@ from pathlib import Path
 # Configurar logger
 logger = logging.getLogger(__name__)
 
-# Diretório padrão para salvar históricos
-HISTORY_DIR = Path("chat_history")
-HISTORY_DIR.mkdir(exist_ok=True)
+# Diretório padrão para salvar históricos (relativo à raiz do projeto)
+HISTORY_DIR = Path("data/chat_history")
+HISTORY_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def save_history(messages: List[Dict[str, str]], session_id: Optional[str] = None) -> str:

@@ -3,13 +3,20 @@ Testes unitários para input_validator
 """
 
 import unittest
-from input_validator import (
+import sys
+import os
+
+# Adicionar diretório raiz ao path para imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+from src.core.input_validator import (
     validate_user_input,
     validate_model_name,
     validate_messages,
-    sanitize_input,
-    _has_excessive_repetition
+    sanitize_input
 )
+# Importar função privada para teste
+from src.core.input_validator import _has_excessive_repetition
 
 
 class TestInputValidator(unittest.TestCase):

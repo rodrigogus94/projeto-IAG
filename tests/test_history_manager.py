@@ -3,12 +3,18 @@ Testes unitários para history_manager
 """
 
 import unittest
+import sys
+import os
 import json
 import tempfile
 import shutil
 from pathlib import Path
 from unittest.mock import patch
-from history_manager import (
+
+# Adicionar diretório raiz ao path para imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+from src.core.history_manager import (
     save_history,
     load_history,
     list_history_sessions,

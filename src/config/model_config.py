@@ -263,3 +263,4 @@ def get_validation_rules() -> dict:
         Dicionário com regras
     """
     return VALIDATION_RULES.copy()
+

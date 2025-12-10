@@ -43,4 +43,16 @@ Thumbs.db
 
 # Logs
 *.log
+logs/
+data/logs/
+data/chat_history/
+chat_history/
+
+# Streamlit
+.streamlit/
+
+# Dados gerados
+data/
+*.db
+*.sqlite
 

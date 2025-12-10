@@ -4,8 +4,8 @@ Handler LLM que integra OllamaService com a interface esperada pelo app.py
 
 import logging
 from typing import Optional, List, Dict, Any, Generator
-from ollama_service import OllamaService
-from model_config import (
+from src.core.ollama_service import OllamaService
+from src.config.model_config import (
     get_system_prompt,
     get_model_parameters,
     validate_temperature,
@@ -14,7 +14,7 @@ from model_config import (
     SYSTEM_MESSAGES,
     VALIDATION_RULES,
 )
-from input_validator import (
+from src.core.input_validator import (
     validate_user_input,
     validate_model_name,
     validate_messages,
@@ -39,7 +39,7 @@ class OllamaLLMHandler:
         # Usar timeout de model_config se não fornecido
         if timeout is None:
             try:
-                from model_config import MODEL_RULES
+                from src.config.model_config import MODEL_RULES
                 timeout = MODEL_RULES.get("timeout_seconds", 60)
             except ImportError:
                 timeout = 60
@@ -281,3 +281,4 @@ def create_llm_handler(base_url: Optional[str] = None, timeout: Optional[int] = 
         return OllamaLLMHandler(timeout=timeout)
     else:
         return OllamaLLMHandler()
+
