@@ -3,6 +3,19 @@ import streamlit as st
 import os
 from typing import Optional
 from dotenv import load_dotenv
+import pandas as pd
+
+@st.cache_data
+def load_vehicle_data():
+    return pd.read_csv("data/dados_veiculos_300.csv")
+
+df_veiculos = load_vehicle_data()
+df_text = df_veiculos.to_string()
+
+if "llm_handler" in st.session_state and st.session_state.llm_handler:
+    st.session_state.llm_handler.set_dataframe_context(df_text)
+
+
 
 # Carrega variáveis de ambiente do arquivo .env
 load_dotenv()

@@ -12,6 +12,12 @@ class OllamaService:
         """
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
+        self.default_system_prompt = (
+            "Você deve responder exclusivamente em português do Brasil, "
+            "independentemente do idioma usado pelo usuário. "
+            "Nunca responda em inglês, a menos que o usuário peça explicitamente."
+        )
+
         
     def list_models(self) -> list:
         """Lista todos os modelos disponíveis no Ollama."""

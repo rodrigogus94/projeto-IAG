@@ -17,6 +17,13 @@ class OllamaLLMHandler:
         """
         self.ollama_service = OllamaService(base_url=base_url)
         self.base_url = base_url
+        self.data_context = ""   # <- AQUI: espaço reservado para os dados
+
+    def set_dataframe_context(self, df_text: str):
+        """Define o conteúdo da base de dados que será usado pelo modelo."""
+        self.data_context = df_text
+
+
         
     def generate_response(
         self, 
@@ -50,13 +57,44 @@ class OllamaLLMHandler:
             # Ollama usa temperature de 0 a 1, mas aceita valores maiores
             ollama_temperature = min(max(temperature, 0.0), 2.0)
             
-            # Chamar o método chat do OllamaService
+            # Injetar os dados do dataframe como contexto do sistema (RAG textual)
+            context_message = {
+                "role": "system",
+                "content": (
+                    "Você é um assistente especializado em análise de dados para veículos rastreados.\n"
+                    "Aqui está a base completa dos dados que você deve usar como referência em TODAS as respostas:\n\n"
+                    f"{self.data_context}\n\n"
+                    "Sempre que o usuário pedir gráficos, análises, métricas ou informações, "
+                    "consulte exclusivamente esses dados."
+                )
+            }
+
+            # ========== INJETAR O CONTEXTO DOS DADOS NO PROMPT ==========
+
+            # Mensagem de sistema com os dados do CSV (RAG tabular)
+            context_message = {
+                "role": "system",
+                "content": (
+                    "Você é um assistente especializado em análise de dados de veículos rastreados.\n"
+                    "Sempre utilize EXCLUSIVAMENTE a base de dados abaixo para responder às perguntas.\n\n"
+                    f"{self.data_context}\n\n"
+                    "Se o usuário pedir gráficos, análises estatísticas, comparações, listagens ou tendências, "
+                    "baseie-se apenas nesses dados."
+                )
+            }
+
+            # Inserir a mensagem de contexto ANTES das mensagens do usuário
+            messages = [context_message] + messages
+
+
+            # Chamar o modelo com contexto + mensagem do usuário
             response = self.ollama_service.chat(
                 model=model,
                 messages=messages,
                 stream=False,
                 temperature=ollama_temperature
             )
+
             
             # Extrair a resposta do formato do Ollama
             if isinstance(response, dict):

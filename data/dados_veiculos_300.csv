@@ -1,0 +1,301 @@
+id_veiculo,marca,modelo,ano,status,cidade,km_mes,velocidade_media,alertas,consumo_combustivel,dias_operacionais,custo_manutencao
+V001,Chevrolet,S10 LTZ,2019,ativo,Jaboatão,1409,61,5,169,21,401
+V002,Hyundai,HR Baú,2015,ativo,Caruaru,2234,59,0,171,23,433
+V003,Hyundai,HR Baú,2022,ativo,Recife,1526,62,3,143,24,289
+V004,Ford,Ranger Limited,2016,ativo,Olinda,1935,67,2,177,24,261
+V005,Mitsubishi,ASX Outdoor,2016,manutencao,Paulista,0,0,0,0,0,740
+V006,Volkswagen,Nivus Comfortline,2024,inativo,Petrolina,0,0,0,0,4,0
+V007,Ford,Ranger Storm,2016,ativo,Caruaru,1792,42,6,129,21,347
+V008,Volkswagen,Amarok Highline,2020,ativo,Petrolina,1629,61,2,189,30,415
+V009,Chevrolet,Tracker LT,2017,ativo,Caruaru,1534,54,3,134,30,426
+V010,Ford,Ranger Storm,2020,inativo,Recife,0,0,0,0,1,0
+V011,Toyota,Hilux SRX,2021,ativo,Caruaru,2361,68,5,140,23,417
+V012,Mitsubishi,Pajero Sport,2022,ativo,Jaboatão,1705,63,4,168,24,441
+V013,Hyundai,HB20X,2021,ativo,Jaboatão,2243,55,0,196,20,278
+V014,Fiat,Strada Ranch,2017,inativo,Paulista,0,0,0,0,4,0
+V015,Chevrolet,S10 High Country,2021,ativo,Cabo de Santo Agostinho,2283,48,4,101,30,434
+V016,Chevrolet,Tracker LT,2023,inativo,Petrolina,0,0,0,0,0,0
+V017,Volkswagen,Amarok Highline,2017,ativo,Garanhuns,2225,64,1,164,21,410
+V018,Volkswagen,Nivus Comfortline,2023,ativo,Jaboatão,1965,64,1,169,28,250
+V019,Renault,Kangoo Express,2015,ativo,Petrolina,1829,47,0,130,29,270
+V020,Chevrolet,Tracker LT,2022,inativo,Jaboatão,0,0,0,0,1,0
+V021,Mitsubishi,ASX Outdoor,2017,ativo,Paulista,1633,69,4,196,23,432
+V022,Volkswagen,Amarok Highline,2020,ativo,Cabo de Santo Agostinho,1447,47,1,108,25,255
+V023,Ford,Ranger Storm,2018,ativo,Recife,1668,42,0,142,21,381
+V024,Ford,Ranger Limited,2022,ativo,Jaboatão,2369,58,3,131,27,354
+V025,Ford,Ranger XLS,2016,ativo,Petrolina,2067,53,3,193,20,422
+V026,Chevrolet,S10 LTZ,2021,inativo,Olinda,0,0,0,0,1,0
+V027,Ford,Ranger XLS,2023,ativo,Paulista,1575,48,3,131,21,363
+V028,Chevrolet,S10 LTZ,2023,inativo,Olinda,0,0,0,0,1,0
+V029,Fiat,Toro Volcano,2022,ativo,Paulista,1320,45,3,100,26,317
+V030,Mitsubishi,Pajero Sport,2021,ativo,Cabo de Santo Agostinho,1517,46,2,127,20,398
+V031,Toyota,Hilux Cabine Dupla,2020,ativo,Cabo de Santo Agostinho,2229,69,6,167,22,264
+V032,Chevrolet,S10 LTZ,2016,ativo,Caruaru,2026,43,4,131,29,402
+V033,Toyota,Hilux Cabine Dupla,2016,ativo,Petrolina,1734,46,5,191,25,311
+V034,Volkswagen,Amarok Highline,2017,ativo,Garanhuns,2136,50,6,109,20,367
+V035,Chevrolet,S10 LTZ,2023,ativo,Garanhuns,1471,69,2,108,23,344
+V036,Volkswagen,Saveiro Cross,2022,inativo,Garanhuns,0,0,0,0,4,0
+V037,Toyota,Hilux Cabine Dupla,2023,ativo,Olinda,1475,48,0,113,28,289
+V038,Volkswagen,Amarok Highline,2024,ativo,Petrolina,1616,61,5,133,28,375
+V039,Volkswagen,Saveiro Cross,2016,ativo,Garanhuns,1290,40,2,198,22,413
+V040,Volkswagen,Saveiro Cross,2022,ativo,Paulista,2348,40,0,109,22,389
+V041,Toyota,Hilux SRX,2024,ativo,Paulista,1461,41,2,146,20,341
+V042,Ford,Ranger Storm,2018,ativo,Petrolina,2346,68,6,152,29,441
+V043,Fiat,Toro Freedom,2017,manutencao,Jaboatão,0,0,0,0,0,1151
+V044,Hyundai,HR Baú,2017,inativo,Petrolina,0,0,0,0,3,0
+V045,Ford,Ranger Limited,2017,inativo,Olinda,0,0,0,0,3,0
+V046,Toyota,Hilux SRX,2018,ativo,Cabo de Santo Agostinho,1916,49,6,129,23,256
+V047,Ford,Ranger Limited,2020,ativo,Olinda,1771,51,5,165,26,423
+V048,Renault,Duster Oroch,2016,inativo,Garanhuns,0,0,0,0,1,0
+V049,Volkswagen,Saveiro Cross,2016,ativo,Petrolina,1842,53,4,165,21,348
+V050,Ford,Ranger Limited,2015,inativo,Recife,0,0,0,0,4,0
+V051,Ford,Ranger Limited,2021,ativo,Petrolina,2476,50,5,115,24,379
+V052,Volkswagen,Nivus Comfortline,2021,ativo,Garanhuns,2335,44,1,153,30,347
+V053,Fiat,Strada Ranch,2024,ativo,Recife,1822,49,1,155,29,405
+V054,Renault,Kangoo Express,2022,ativo,Caruaru,2246,55,6,194,22,418
+V055,Chevrolet,S10 High Country,2023,ativo,Petrolina,1391,66,6,130,30,329
+V056,Ford,Ranger XLS,2017,ativo,Caruaru,2173,59,6,198,21,366
+V057,Hyundai,HB20X,2024,ativo,Paulista,2212,52,1,118,30,426
+V058,Toyota,Hilux SRV,2021,ativo,Cabo de Santo Agostinho,1302,57,1,115,27,284
+V059,Mitsubishi,ASX Outdoor,2023,manutencao,Petrolina,0,0,0,0,0,1186
+V060,Mitsubishi,ASX Outdoor,2023,ativo,Cabo de Santo Agostinho,1525,63,6,160,27,316
+V061,Ford,Ranger Storm,2019,inativo,Cabo de Santo Agostinho,0,0,0,0,5,0
+V062,Ford,Ranger Limited,2022,ativo,Garanhuns,1680,48,2,140,28,270
+V063,Fiat,Toro Freedom,2018,ativo,Jaboatão,1638,42,3,152,25,388
+V064,Mitsubishi,Pajero Sport,2015,ativo,Paulista,1997,68,6,174,20,445
+V065,Hyundai,Creta Action,2015,manutencao,Garanhuns,0,0,0,0,0,1085
+V066,Hyundai,Creta Action,2023,inativo,Caruaru,0,0,0,0,3,0
+V067,Ford,Ranger Limited,2021,ativo,Paulista,1888,61,5,151,22,369
+V068,Fiat,Strada Ranch,2023,ativo,Paulista,2412,58,5,103,21,414
+V069,Hyundai,HR Baú,2022,ativo,Garanhuns,1976,50,1,158,25,336
+V070,Hyundai,Creta Action,2021,ativo,Olinda,2163,40,5,169,20,339
+V071,Ford,Ranger Storm,2016,inativo,Recife,0,0,0,0,0,0
+V072,Ford,Ranger XLS,2015,ativo,Caruaru,1458,55,5,114,29,305
+V073,Mitsubishi,ASX Outdoor,2019,inativo,Jaboatão,0,0,0,0,4,0
+V074,Chevrolet,S10 LTZ,2019,ativo,Recife,1838,58,5,148,26,433
+V075,Ford,Ranger XLS,2024,ativo,Caruaru,1408,62,6,138,30,403
+V076,Chevrolet,Tracker LT,2015,ativo,Paulista,1958,42,4,182,25,253
+V077,Hyundai,Creta Action,2016,ativo,Petrolina,2141,62,1,155,22,437
+V078,Volkswagen,Nivus Comfortline,2023,inativo,Cabo de Santo Agostinho,0,0,0,0,3,0
+V079,Volkswagen,Amarok Highline,2018,inativo,Olinda,0,0,0,0,2,0
+V080,Mitsubishi,L200 Triton,2022,ativo,Paulista,1888,40,3,141,22,374
+V081,Ford,Ranger Limited,2019,ativo,Garanhuns,2338,40,4,124,21,311
+V082,Hyundai,Creta Action,2023,inativo,Cabo de Santo Agostinho,0,0,0,0,5,0
+V083,Mitsubishi,Pajero Sport,2015,ativo,Caruaru,2028,62,1,139,30,398
+V084,Renault,Kangoo Express,2023,ativo,Paulista,2327,50,2,189,27,319
+V085,Volkswagen,Amarok Highline,2018,ativo,Caruaru,1846,43,5,168,22,299
+V086,Ford,Ranger Storm,2022,ativo,Garanhuns,1405,66,1,137,23,342
+V087,Fiat,Toro Volcano,2015,inativo,Jaboatão,0,0,0,0,2,0
+V088,Toyota,Hilux SRV,2023,ativo,Jaboatão,2205,43,6,101,29,322
+V089,Mitsubishi,Pajero Sport,2022,ativo,Recife,1717,70,6,161,21,266
+V090,Hyundai,Creta Action,2016,ativo,Recife,1510,44,6,172,24,271
+V091,Ford,Ranger XLS,2023,inativo,Caruaru,0,0,0,0,4,0
+V092,Hyundai,Creta Action,2022,ativo,Paulista,1825,58,4,107,29,439
+V093,Chevrolet,S10 LTZ,2018,ativo,Olinda,1521,47,1,170,21,290
+V094,Toyota,Hilux SRX,2022,ativo,Cabo de Santo Agostinho,1796,41,1,136,24,429
+V095,Mitsubishi,L200 Triton,2018,manutencao,Caruaru,0,0,0,0,0,917
+V096,Chevrolet,Tracker LT,2018,ativo,Garanhuns,1491,42,0,121,24,402
+V097,Volkswagen,Amarok Highline,2016,ativo,Garanhuns,2024,70,2,164,28,376
+V098,Mitsubishi,L200 Triton,2024,ativo,Paulista,1860,59,2,103,21,308
+V099,Toyota,Hilux Cabine Dupla,2019,ativo,Jaboatão,2163,56,5,156,24,296
+V100,Hyundai,HB20X,2022,manutencao,Cabo de Santo Agostinho,0,0,0,0,0,878
+V101,Hyundai,Creta Action,2020,ativo,Jaboatão,1875,53,5,163,24,419
+V102,Hyundai,HB20X,2015,ativo,Petrolina,1716,50,0,198,26,381
+V103,Toyota,Hilux Cabine Dupla,2023,ativo,Recife,1584,56,2,179,27,410
+V104,Mitsubishi,L200 Triton,2018,ativo,Jaboatão,1789,54,5,162,21,257
+V105,Ford,Ranger Storm,2017,ativo,Recife,2331,53,0,128,21,368
+V106,Chevrolet,Tracker LT,2017,ativo,Garanhuns,2242,62,2,153,27,370
+V107,Ford,Ranger Limited,2023,ativo,Caruaru,2427,56,5,117,21,320
+V108,Hyundai,Creta Action,2023,ativo,Recife,1779,63,2,175,29,418
+V109,Mitsubishi,L200 Triton,2022,ativo,Petrolina,1880,57,6,169,26,366
+V110,Renault,Duster Oroch,2018,ativo,Caruaru,2041,41,2,195,27,430
+V111,Hyundai,Creta Action,2017,ativo,Recife,1458,56,4,142,21,362
+V112,Chevrolet,Tracker LT,2022,ativo,Jaboatão,2039,67,5,119,21,370
+V113,Volkswagen,Amarok Highline,2024,ativo,Olinda,1872,67,5,168,26,331
+V114,Mitsubishi,ASX Outdoor,2015,ativo,Caruaru,2492,61,2,129,21,361
+V115,Chevrolet,Tracker LT,2016,ativo,Garanhuns,1259,41,2,107,24,341
+V116,Renault,Kangoo Express,2017,ativo,Paulista,2359,61,6,123,22,294
+V117,Chevrolet,Tracker LT,2021,ativo,Caruaru,2219,69,4,118,23,368
+V118,Volkswagen,Amarok Highline,2019,ativo,Cabo de Santo Agostinho,1789,61,4,120,21,363
+V119,Renault,Master Furgão,2019,ativo,Paulista,1712,54,6,138,23,348
+V120,Mitsubishi,L200 Triton,2018,ativo,Petrolina,2377,49,5,137,20,418
+V121,Hyundai,Creta Action,2015,ativo,Recife,2441,63,3,136,23,405
+V122,Renault,Duster Oroch,2018,ativo,Jaboatão,2486,43,5,182,20,329
+V123,Mitsubishi,L200 Triton,2024,ativo,Jaboatão,1384,69,2,141,26,294
+V124,Ford,Ranger XLS,2023,inativo,Petrolina,0,0,0,0,4,0
+V125,Volkswagen,Saveiro Cross,2019,manutencao,Cabo de Santo Agostinho,0,0,0,0,0,1195
+V126,Volkswagen,Nivus Comfortline,2020,inativo,Cabo de Santo Agostinho,0,0,0,0,0,0
+V127,Fiat,Toro Freedom,2021,manutencao,Petrolina,0,0,0,0,0,746
+V128,Hyundai,HR Baú,2019,ativo,Cabo de Santo Agostinho,1954,61,5,186,24,399
+V129,Hyundai,HB20X,2020,ativo,Caruaru,2165,40,4,171,25,406
+V130,Ford,Ranger Storm,2016,ativo,Cabo de Santo Agostinho,1818,60,3,114,22,261
+V131,Toyota,Hilux SRX,2022,ativo,Caruaru,2300,44,3,158,25,421
+V132,Hyundai,HB20X,2017,inativo,Olinda,0,0,0,0,3,0
+V133,Hyundai,Creta Action,2015,ativo,Caruaru,2108,54,1,146,21,425
+V134,Renault,Master Furgão,2020,ativo,Garanhuns,1588,70,0,158,21,419
+V135,Ford,Ranger Storm,2024,manutencao,Recife,0,0,0,0,0,1102
+V136,Renault,Duster Oroch,2017,inativo,Caruaru,0,0,0,0,0,0
+V137,Ford,Ranger Storm,2018,inativo,Caruaru,0,0,0,0,2,0
+V138,Fiat,Strada Ranch,2015,ativo,Jaboatão,1466,57,2,122,21,419
+V139,Toyota,Hilux SRV,2015,ativo,Caruaru,2405,50,0,122,24,263
+V140,Fiat,Strada Ranch,2021,ativo,Olinda,2175,54,6,146,28,401
+V141,Chevrolet,S10 High Country,2023,ativo,Recife,2267,49,3,182,20,265
+V142,Mitsubishi,Pajero Sport,2021,ativo,Cabo de Santo Agostinho,2108,42,0,141,29,287
+V143,Chevrolet,S10 LTZ,2019,ativo,Petrolina,1980,59,4,137,27,379
+V144,Hyundai,HR Baú,2016,inativo,Caruaru,0,0,0,0,3,0
+V145,Mitsubishi,L200 Triton,2021,ativo,Cabo de Santo Agostinho,2016,53,5,112,25,359
+V146,Renault,Master Furgão,2019,ativo,Jaboatão,2171,42,0,110,21,360
+V147,Chevrolet,Tracker LT,2020,inativo,Recife,0,0,0,0,4,0
+V148,Renault,Master Furgão,2016,ativo,Paulista,1305,70,2,176,24,340
+V149,Chevrolet,Tracker LT,2023,ativo,Cabo de Santo Agostinho,1659,67,0,144,28,344
+V150,Chevrolet,S10 High Country,2024,ativo,Paulista,2348,64,6,179,29,422
+V151,Toyota,Hilux Cabine Dupla,2019,ativo,Garanhuns,1832,69,2,144,20,296
+V152,Fiat,Strada Ranch,2021,ativo,Recife,1387,63,4,127,26,357
+V153,Mitsubishi,Pajero Sport,2017,ativo,Petrolina,2362,59,0,106,22,290
+V154,Toyota,Hilux Cabine Dupla,2016,ativo,Paulista,2194,59,3,153,24,305
+V155,Chevrolet,S10 High Country,2021,ativo,Cabo de Santo Agostinho,2279,61,2,105,23,351
+V156,Toyota,Hilux SRV,2018,ativo,Caruaru,1481,64,2,137,25,280
+V157,Toyota,Hilux SRX,2021,ativo,Paulista,2290,62,1,164,28,421
+V158,Renault,Duster Oroch,2021,inativo,Recife,0,0,0,0,3,0
+V159,Toyota,Hilux SRX,2016,inativo,Paulista,0,0,0,0,4,0
+V160,Hyundai,HB20X,2021,ativo,Paulista,1242,70,2,121,29,367
+V161,Renault,Duster Oroch,2021,inativo,Caruaru,0,0,0,0,3,0
+V162,Hyundai,HB20X,2016,ativo,Garanhuns,1895,47,2,199,22,269
+V163,Chevrolet,Tracker LT,2023,ativo,Petrolina,1919,63,6,182,22,310
+V164,Chevrolet,S10 LTZ,2019,ativo,Jaboatão,1354,45,6,180,27,368
+V165,Mitsubishi,ASX Outdoor,2024,ativo,Petrolina,2484,50,1,156,21,370
+V166,Mitsubishi,ASX Outdoor,2019,inativo,Recife,0,0,0,0,2,0
+V167,Chevrolet,S10 High Country,2022,ativo,Recife,1955,66,2,109,30,273
+V168,Hyundai,Creta Action,2024,ativo,Recife,2121,69,6,173,30,298
+V169,Renault,Master Furgão,2022,ativo,Recife,2122,43,6,143,21,379
+V170,Fiat,Toro Freedom,2018,inativo,Cabo de Santo Agostinho,0,0,0,0,4,0
+V171,Fiat,Toro Volcano,2020,manutencao,Paulista,0,0,0,0,0,909
+V172,Renault,Master Furgão,2024,ativo,Petrolina,1334,50,0,171,30,348
+V173,Volkswagen,Amarok Highline,2024,inativo,Petrolina,0,0,0,0,0,0
+V174,Fiat,Toro Volcano,2019,manutencao,Paulista,0,0,0,0,0,766
+V175,Chevrolet,S10 High Country,2023,ativo,Petrolina,1461,61,5,194,30,384
+V176,Chevrolet,Tracker LT,2021,ativo,Recife,1942,49,1,127,25,446
+V177,Mitsubishi,L200 Triton,2018,manutencao,Jaboatão,0,0,0,0,0,739
+V178,Volkswagen,Saveiro Cross,2023,inativo,Recife,0,0,0,0,5,0
+V179,Renault,Master Furgão,2017,ativo,Jaboatão,1532,45,6,188,29,292
+V180,Mitsubishi,L200 Triton,2021,ativo,Caruaru,2109,59,2,196,27,309
+V181,Ford,Ranger Limited,2022,manutencao,Caruaru,0,0,0,0,0,888
+V182,Mitsubishi,Pajero Sport,2019,inativo,Paulista,0,0,0,0,1,0
+V183,Ford,Ranger Storm,2017,inativo,Recife,0,0,0,0,5,0
+V184,Mitsubishi,Pajero Sport,2023,manutencao,Olinda,0,0,0,0,0,845
+V185,Chevrolet,S10 LTZ,2019,ativo,Jaboatão,2095,42,1,157,25,256
+V186,Hyundai,HR Baú,2021,ativo,Caruaru,1990,42,2,128,20,331
+V187,Chevrolet,Tracker LT,2020,inativo,Jaboatão,0,0,0,0,0,0
+V188,Volkswagen,Amarok Highline,2017,inativo,Cabo de Santo Agostinho,0,0,0,0,3,0
+V189,Toyota,Hilux SRV,2015,ativo,Jaboatão,2323,70,5,177,28,358
+V190,Chevrolet,S10 High Country,2018,ativo,Recife,1688,53,5,179,27,266
+V191,Chevrolet,S10 High Country,2024,ativo,Caruaru,1494,49,3,100,29,340
+V192,Ford,Ranger Storm,2021,ativo,Olinda,2272,51,0,167,28,379
+V193,Toyota,Hilux SRX,2022,ativo,Paulista,1964,48,5,102,25,267
+V194,Renault,Duster Oroch,2016,inativo,Petrolina,0,0,0,0,1,0
+V195,Toyota,Hilux SRX,2023,ativo,Jaboatão,2151,62,3,180,22,284
+V196,Chevrolet,Tracker LT,2022,ativo,Caruaru,1289,65,1,105,25,329
+V197,Hyundai,HB20X,2022,ativo,Caruaru,1785,51,6,199,20,417
+V198,Renault,Kangoo Express,2016,inativo,Paulista,0,0,0,0,3,0
+V199,Mitsubishi,Pajero Sport,2020,manutencao,Cabo de Santo Agostinho,0,0,0,0,0,1054
+V200,Mitsubishi,Pajero Sport,2023,ativo,Olinda,2069,42,3,177,22,389
+V201,Volkswagen,Amarok Highline,2016,ativo,Garanhuns,1827,54,4,191,26,292
+V202,Mitsubishi,Pajero Sport,2022,ativo,Petrolina,2459,53,2,181,20,269
+V203,Hyundai,Creta Action,2023,inativo,Jaboatão,0,0,0,0,0,0
+V204,Fiat,Strada Ranch,2022,ativo,Olinda,1683,64,5,146,25,348
+V205,Toyota,Hilux Cabine Dupla,2017,ativo,Petrolina,1961,54,6,109,29,285
+V206,Renault,Kangoo Express,2020,ativo,Caruaru,1432,40,5,123,27,382
+V207,Hyundai,HB20X,2016,ativo,Garanhuns,2113,46,4,136,27,301
+V208,Chevrolet,S10 LTZ,2016,ativo,Cabo de Santo Agostinho,1379,65,5,140,30,338
+V209,Chevrolet,Tracker LT,2023,ativo,Garanhuns,1522,62,5,189,30,294
+V210,Renault,Master Furgão,2018,ativo,Caruaru,1484,47,6,163,20,342
+V211,Renault,Kangoo Express,2023,ativo,Olinda,1334,49,3,191,27,384
+V212,Hyundai,Creta Action,2024,ativo,Petrolina,1351,54,3,187,28,338
+V213,Fiat,Strada Ranch,2024,ativo,Jaboatão,2086,56,6,107,21,382
+V214,Fiat,Toro Volcano,2017,ativo,Caruaru,1908,70,4,136,21,314
+V215,Ford,Ranger Storm,2023,ativo,Garanhuns,2458,57,0,164,30,293
+V216,Fiat,Toro Freedom,2024,inativo,Petrolina,0,0,0,0,4,0
+V217,Toyota,Hilux SRV,2016,ativo,Garanhuns,1631,64,4,153,29,413
+V218,Toyota,Hilux SRX,2023,ativo,Garanhuns,2189,47,6,187,26,326
+V219,Mitsubishi,L200 Triton,2015,ativo,Paulista,2191,54,1,143,29,286
+V220,Renault,Master Furgão,2020,inativo,Petrolina,0,0,0,0,3,0
+V221,Fiat,Toro Volcano,2023,ativo,Petrolina,1695,54,0,134,27,313
+V222,Fiat,Toro Freedom,2015,ativo,Paulista,2460,53,1,120,25,397
+V223,Renault,Duster Oroch,2017,ativo,Cabo de Santo Agostinho,2221,68,2,163,20,273
+V224,Hyundai,HB20X,2022,manutencao,Caruaru,0,0,0,0,0,998
+V225,Renault,Duster Oroch,2015,ativo,Cabo de Santo Agostinho,1785,57,0,113,26,284
+V226,Volkswagen,Nivus Comfortline,2020,inativo,Petrolina,0,0,0,0,0,0
+V227,Hyundai,HR Baú,2024,ativo,Petrolina,2333,49,0,149,28,365
+V228,Volkswagen,Nivus Comfortline,2024,ativo,Olinda,2006,51,6,143,28,343
+V229,Fiat,Toro Freedom,2024,ativo,Recife,1292,41,1,191,25,371
+V230,Mitsubishi,L200 Triton,2024,inativo,Jaboatão,0,0,0,0,2,0
+V231,Renault,Duster Oroch,2021,manutencao,Garanhuns,0,0,0,0,0,1003
+V232,Renault,Master Furgão,2023,ativo,Garanhuns,2172,66,0,147,25,422
+V233,Chevrolet,S10 High Country,2024,ativo,Recife,2422,55,2,183,29,397
+V234,Ford,Ranger Storm,2015,ativo,Jaboatão,2273,60,5,179,26,287
+V235,Ford,Ranger XLS,2024,manutencao,Olinda,0,0,0,0,0,797
+V236,Toyota,Hilux SRX,2020,ativo,Paulista,1617,53,4,199,29,370
+V237,Toyota,Hilux Cabine Dupla,2017,ativo,Petrolina,2179,56,3,140,22,367
+V238,Renault,Master Furgão,2020,ativo,Garanhuns,2449,55,1,131,24,392
+V239,Volkswagen,Saveiro Cross,2019,inativo,Caruaru,0,0,0,0,5,0
+V240,Mitsubishi,Pajero Sport,2022,ativo,Garanhuns,1789,43,4,186,28,347
+V241,Hyundai,Creta Action,2017,ativo,Garanhuns,1361,51,3,183,24,441
+V242,Mitsubishi,L200 Triton,2018,inativo,Garanhuns,0,0,0,0,4,0
+V243,Volkswagen,Saveiro Cross,2016,ativo,Caruaru,1696,41,5,167,23,413
+V244,Ford,Ranger XLS,2016,ativo,Cabo de Santo Agostinho,1405,61,6,117,20,390
+V245,Fiat,Toro Volcano,2022,ativo,Caruaru,1788,50,2,182,20,446
+V246,Chevrolet,Tracker LT,2024,ativo,Recife,1558,53,6,122,20,351
+V247,Mitsubishi,L200 Triton,2019,inativo,Recife,0,0,0,0,2,0
+V248,Chevrolet,S10 High Country,2019,ativo,Cabo de Santo Agostinho,1474,67,4,159,24,299
+V249,Chevrolet,S10 High Country,2017,inativo,Garanhuns,0,0,0,0,5,0
+V250,Fiat,Toro Freedom,2020,inativo,Caruaru,0,0,0,0,1,0
+V251,Hyundai,Creta Action,2023,ativo,Paulista,1395,45,1,161,25,313
+V252,Toyota,Hilux SRX,2021,ativo,Garanhuns,1875,49,4,192,29,252
+V253,Volkswagen,Nivus Comfortline,2020,ativo,Recife,1442,54,2,120,26,425
+V254,Volkswagen,Nivus Comfortline,2016,ativo,Garanhuns,1952,59,1,128,22,372
+V255,Fiat,Toro Volcano,2024,ativo,Cabo de Santo Agostinho,2300,65,5,127,23,424
+V256,Chevrolet,Tracker LT,2022,ativo,Petrolina,1359,69,4,114,20,390
+V257,Ford,Ranger Storm,2023,ativo,Petrolina,2265,54,0,187,23,433
+V258,Mitsubishi,L200 Triton,2023,ativo,Recife,2128,44,4,153,27,394
+V259,Toyota,Hilux Cabine Dupla,2022,ativo,Garanhuns,1244,52,2,100,23,398
+V260,Chevrolet,S10 LTZ,2021,ativo,Olinda,2308,41,0,160,20,323
+V261,Hyundai,HR Baú,2017,inativo,Paulista,0,0,0,0,2,0
+V262,Hyundai,Creta Action,2021,ativo,Jaboatão,1912,43,1,168,26,385
+V263,Fiat,Strada Ranch,2018,inativo,Recife,0,0,0,0,2,0
+V264,Mitsubishi,ASX Outdoor,2023,ativo,Paulista,1670,47,3,144,22,320
+V265,Ford,Ranger Storm,2016,ativo,Paulista,2459,64,0,130,23,267
+V266,Chevrolet,Tracker LT,2015,ativo,Recife,1701,63,0,151,27,309
+V267,Ford,Ranger XLS,2017,ativo,Garanhuns,1679,66,5,173,25,397
+V268,Renault,Duster Oroch,2019,inativo,Caruaru,0,0,0,0,3,0
+V269,Volkswagen,Amarok Highline,2015,ativo,Jaboatão,2482,61,3,171,27,262
+V270,Renault,Master Furgão,2021,inativo,Petrolina,0,0,0,0,5,0
+V271,Hyundai,Creta Action,2017,ativo,Jaboatão,2301,55,1,128,24,431
+V272,Fiat,Toro Volcano,2015,ativo,Paulista,2341,56,1,149,23,315
+V273,Ford,Ranger Limited,2016,manutencao,Petrolina,0,0,0,0,0,747
+V274,Ford,Ranger XLS,2019,ativo,Recife,1349,46,6,197,29,435
+V275,Ford,Ranger Limited,2018,inativo,Petrolina,0,0,0,0,2,0
+V276,Toyota,Hilux SRV,2018,manutencao,Olinda,0,0,0,0,0,1082
+V277,Mitsubishi,L200 Triton,2024,inativo,Paulista,0,0,0,0,1,0
+V278,Renault,Kangoo Express,2021,ativo,Petrolina,1831,48,2,165,27,369
+V279,Chevrolet,Tracker LT,2022,inativo,Petrolina,0,0,0,0,1,0
+V280,Renault,Kangoo Express,2021,ativo,Caruaru,1498,40,2,170,29,398
+V281,Hyundai,Creta Action,2017,ativo,Caruaru,1977,58,6,131,27,390
+V282,Renault,Kangoo Express,2022,manutencao,Cabo de Santo Agostinho,0,0,0,0,0,935
+V283,Fiat,Strada Ranch,2020,ativo,Cabo de Santo Agostinho,1576,69,4,182,20,384
+V284,Toyota,Hilux SRV,2015,inativo,Paulista,0,0,0,0,1,0
+V285,Ford,Ranger XLS,2017,ativo,Cabo de Santo Agostinho,1964,41,4,181,30,407
+V286,Mitsubishi,ASX Outdoor,2022,ativo,Paulista,1224,40,4,192,24,387
+V287,Volkswagen,Saveiro Cross,2023,inativo,Paulista,0,0,0,0,1,0
+V288,Chevrolet,S10 LTZ,2023,ativo,Caruaru,2469,56,2,145,24,351
+V289,Chevrolet,S10 High Country,2021,ativo,Caruaru,1662,49,5,110,30,416
+V290,Toyota,Hilux SRV,2021,ativo,Cabo de Santo Agostinho,1314,60,0,189,22,271
+V291,Mitsubishi,Pajero Sport,2020,ativo,Olinda,2281,69,0,129,23,427
+V292,Mitsubishi,Pajero Sport,2015,manutencao,Garanhuns,0,0,0,0,0,1160
+V293,Toyota,Hilux SRV,2020,ativo,Caruaru,2402,44,6,191,26,269
+V294,Volkswagen,Saveiro Cross,2024,ativo,Paulista,2307,50,3,196,22,426
+V295,Chevrolet,Tracker LT,2020,ativo,Paulista,1675,66,0,143,29,446
+V296,Hyundai,Creta Action,2015,ativo,Cabo de Santo Agostinho,2204,47,2,170,26,360
+V297,Fiat,Strada Ranch,2024,ativo,Olinda,2466,49,6,131,21,271
+V298,Volkswagen,Saveiro Cross,2021,inativo,Jaboatão,0,0,0,0,5,0
+V299,Hyundai,Creta Action,2020,ativo,Recife,1831,54,2,197,24,276
+V300,Fiat,Toro Freedom,2017,ativo,Paulista,1411,40,0,145,28,273
