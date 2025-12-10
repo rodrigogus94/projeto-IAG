@@ -22,6 +22,7 @@ Aplicação web de chat interativo com IA usando Streamlit e OpenAI API. Interfa
 1. **Clone ou baixe o projeto**
 
 2. **Instale as dependências:**
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -29,11 +30,13 @@ pip install -r requirements.txt
 3. **Configure a API Key:**
 
    Crie um arquivo `.env` na raiz do projeto:
+
    ```env
    OPENAI_API_KEY=sk-sua-chave-api-aqui
    ```
-   
+
    Ou use o arquivo `.env.example` como referência:
+
    ```bash
    cp .env.example .env
    # Edite o .env e adicione sua chave
@@ -42,11 +45,13 @@ pip install -r requirements.txt
 ## Como Usar
 
 1. **Inicie a aplicação:**
+
 ```bash
 streamlit run app.py
 ```
 
 2. **Configure a API Key:**
+
    - Na sidebar, marque "Usar variáveis de ambiente (.env)" se você configurou o `.env`
    - Ou desmarque e insira a chave manualmente
    - Clique em "Inicializar"
@@ -56,9 +61,10 @@ streamlit run app.py
    - A IA responderá mantendo o contexto da conversa
    - Use " Limpar Chat" para reiniciar a conversa
 
-##  Configurações
+## Configurações
 
 ### Modelos Disponíveis
+
 - `gpt-3.5-turbo` - Rápido e econômico
 - `gpt-4` - Mais poderoso e preciso
 - `gpt-4-turbo-preview` - Versão preview do GPT-4
@@ -66,10 +72,11 @@ streamlit run app.py
 - `gpt-4o-mini` - Versão compacta do GPT-4o
 
 ### Parâmetros
+
 - **Temperature**: Controla a criatividade (0.0 = determinístico, 2.0 = muito criativo)
 - **Max Tokens**: Limite de tokens na resposta (configurável no código)
 
-##  Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 projeto-sdk-mk00/
@@ -81,14 +88,14 @@ projeto-sdk-mk00/
 └── README.md           # Este arquivo
 ```
 
-##  Segurança
+## Segurança
 
--  **Nunca** commite o arquivo `.env` no controle de versão
--  Mantenha sua API Key segura e privada
--  O arquivo `.env` está no `.gitignore` por padrão
--  A API Key é ocultada na interface (tipo password)
+- **Nunca** commite o arquivo `.env` no controle de versão
+- Mantenha sua API Key segura e privada
+- O arquivo `.env` está no `.gitignore` por padrão
+- A API Key é ocultada na interface (tipo password)
 
-##  Desenvolvimento
+## Desenvolvimento
 
 ### Arquitetura
 
@@ -105,26 +112,27 @@ O projeto segue uma arquitetura modular:
 - [ ] Suporte para múltiplos provedores de LLM
 - [ ] Histórico persistente em banco de dados
 
-##  Licença
+## Licença
 
 Este projeto é de código aberto e está disponível para uso educacional e pessoal.
 
-##  Contribuindo
+## Contribuindo
 
 Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou pull requests.
 
-##  Suporte
+## Suporte
 
 Para problemas ou dúvidas:
+
 1. Verifique se a API Key está configurada corretamente
 2. Confirme que todas as dependências estão instaladas
 3. Verifique os logs de erro na interface
 
-##  Agradecimentos
+## Agradecimentos
 
 - [Streamlit](https://streamlit.io/) pela excelente framework
 - [OpenAI](https://openai.com/) pela API de linguagem
 
 ---
 
-Desenvolvido com  usando Streamlit e OpenAI API
+Desenvolvido com usando Streamlit e OpenAI API
