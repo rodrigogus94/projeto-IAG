@@ -24,10 +24,12 @@ Aplicação web de chat interativo com IA usando Streamlit e Ollama. Interface m
 1. **Clone ou baixe o projeto**
 
 2. **Instale o Ollama** (se ainda não tiver):
+
    - Windows/Mac: Baixe de https://ollama.ai/
    - Linux: `curl -fsSL https://ollama.ai/install.sh | sh`
 
 3. **Baixe um modelo do Ollama**:
+
    ```bash
    ollama pull llama2
    # ou
@@ -36,13 +38,15 @@ Aplicação web de chat interativo com IA usando Streamlit e Ollama. Interface m
    ```
 
 4. **Instale as dependências do Python**:
+
    ```bash
    pip install -r requirements.txt
    ```
 
 5. **Configure variáveis de ambiente (opcional)**:
-   
+
    Crie um arquivo `.env` na raiz do projeto:
+
    ```env
    OLLAMA_BASE_URL=http://localhost:11434
    TRANSCRIPTION_METHOD=whisper
@@ -53,16 +57,19 @@ Aplicação web de chat interativo com IA usando Streamlit e Ollama. Interface m
 ## Como Usar
 
 1. **Certifique-se de que o Ollama está rodando**:
+
    ```bash
    ollama serve
    ```
 
 2. **Inicie a aplicação**:
+
    ```bash
    streamlit run app.py
    ```
 
 3. **Configure a conexão**:
+
    - Na sidebar, expanda "⚙️ Configurações"
    - Verifique se a URL do Ollama está correta (padrão: http://localhost:11434)
    - Clique em "🔄 Reconectar ao Ollama" se necessário
@@ -92,6 +99,7 @@ ollama pull codellama
 Dois métodos disponíveis:
 
 1. **Whisper Local** (padrão):
+
    - Usa `openai-whisper` instalado localmente
    - Não requer API Key
    - Processa localmente (pode ser mais lento)
@@ -116,6 +124,7 @@ projeto-sdk-mk01/
 ├── llm_handler.py      # Handler que integra OllamaService
 ├── ollama_service.py    # Serviço para comunicação com Ollama
 ├── audio_transcriber.py # Módulo de transcrição de áudio
+├── model_config.py     # Configurações centralizadas do modelo (regras, parâmetros, prompts)
 ├── styles.py           # Estilos CSS customizados
 ├── requirements.txt    # Dependências do projeto
 ├── .env                # Variáveis de ambiente (criar)
@@ -130,24 +139,72 @@ O projeto segue uma arquitetura modular:
 - **`llm_handler.py`**: Adapta OllamaService para a interface esperada pelo app
 - **`ollama_service.py`**: Encapsula toda a lógica de comunicação com a API do Ollama
 - **`audio_transcriber.py`**: Gerencia transcrição de áudio (Whisper/OpenAI)
+- **`model_config.py`**: **Centraliza todas as configurações do modelo** - regras, parâmetros, system prompts e instruções
 - **`styles.py`**: Centraliza todos os estilos CSS customizados
+
+### Configuração do Modelo (`model_config.py`)
+
+O arquivo `model_config.py` é o **centro de controle** para todas as configurações do modelo:
+
+- **System Prompts**: Persona e instruções do assistente
+- **Parâmetros Padrão**: Temperatura, modelo padrão, limites
+- **Regras de Comportamento**: Como o modelo deve se comportar
+- **Prompts por Contexto**: Instruções específicas para diferentes situações
+- **Validações**: Regras de validação de inputs
+- **Configurações Avançadas**: Retry, cache, logging, etc.
+
+**Para personalizar o comportamento do modelo**, edite o arquivo `model_config.py`:
+
+- Ajuste o `SYSTEM_PROMPT` para mudar a persona do assistente
+- Modifique `DEFAULT_TEMPERATURE` para alterar a criatividade padrão
+- Adicione novos contextos em `CONTEXT_PROMPTS`
+- Configure regras de validação em `VALIDATION_RULES`
 
 ## Solução de Problemas
 
 ### Ollama não conecta
 
-1. Verifique se o Ollama está rodando:
+1. **Execute o script de diagnóstico**:
+
+   ```bash
+   python diagnose_ollama.py
+   ```
+
+   Este script verifica automaticamente todos os aspectos da conexão.
+
+2. **Verifique se o Ollama está rodando**:
+
    ```bash
    ollama list
    ```
 
-2. Verifique a URL nas configurações (padrão: http://localhost:11434)
+   Se retornar erro, inicie o Ollama:
 
-3. Se estiver usando Docker ou servidor remoto, ajuste a URL
+   ```bash
+   ollama serve
+   ```
+
+3. **Verifique a URL nas configurações**:
+
+   - Padrão: `http://localhost:11434`
+   - Se estiver usando Docker: `http://localhost:11434` (ou a porta configurada)
+   - Se estiver em servidor remoto: `http://IP_DO_SERVIDOR:11434`
+
+4. **Verifique o firewall**:
+
+   - O Ollama usa a porta 11434 por padrão
+   - Certifique-se de que a porta não está bloqueada
+
+5. **Teste manualmente a API**:
+   ```bash
+   curl http://localhost:11434/api/tags
+   ```
+   Deve retornar uma lista de modelos em JSON.
 
 ### Nenhum modelo disponível
 
 1. Baixe pelo menos um modelo:
+
    ```bash
    ollama pull llama2
    ```
@@ -157,6 +214,7 @@ O projeto segue uma arquitetura modular:
 ### Transcrição de áudio não funciona
 
 1. **Para Whisper local**:
+
    - Verifique se `openai-whisper` está instalado: `pip install openai-whisper`
    - O primeiro uso pode demorar (baixa o modelo)
 
@@ -167,6 +225,7 @@ O projeto segue uma arquitetura modular:
 ### Erro ao importar módulos
 
 Certifique-se de que todas as dependências estão instaladas:
+
 ```bash
 pip install -r requirements.txt
 ```

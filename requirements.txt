@@ -3,3 +3,7 @@ requests>=2.32.5,<3.0.0
 python-dotenv==1.0.0
 openai-whisper>=20231117
 openai>=1.0.0
+
+# Dependências para testes (opcional)
+# pytest>=7.4.0
+# pytest-cov>=4.1.0

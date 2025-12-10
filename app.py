@@ -7,23 +7,57 @@ from dotenv import load_dotenv
 # Carrega variáveis de ambiente do arquivo .env
 load_dotenv()
 
+# Configurar logging
+try:
+    from logging_config import setup_logging, get_logger
+
+    setup_logging(level=os.getenv("LOG_LEVEL", "INFO"), log_to_console=False)
+    logger = get_logger(__name__)
+    logger.info("Aplicação iniciada")
+except ImportError:
+    import logging
+
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+
 # Imports dos módulos customizados
 try:
     from llm_handler import create_llm_handler
     from audio_transcriber import transcribe_audio
     from styles import CUSTOM_CSS
+    from input_validator import validate_user_input, sanitize_input
+    from history_manager import (
+        save_history,
+        load_history,
+        list_history_sessions,
+        auto_save_history,
+    )
 
     LLM_AVAILABLE = True
     AUDIO_AVAILABLE = True
+    VALIDATION_AVAILABLE = True
+    HISTORY_AVAILABLE = True
 except ImportError as e:
     LLM_AVAILABLE = False
     AUDIO_AVAILABLE = False
+    VALIDATION_AVAILABLE = False
+    HISTORY_AVAILABLE = False
     CUSTOM_CSS = ""
+    logger.warning(f"Alguns módulos não foram encontrados: {str(e)}")
     st.warning(f"⚠️ Alguns módulos não foram encontrados: {str(e)}")
 
-    # Fallback para create_llm_handler
+    # Fallbacks
     def create_llm_handler(base_url=None):
         return None
+
+    def validate_user_input(text, **kwargs):
+        return (True, None)
+
+    def sanitize_input(text):
+        return text
+
+    def auto_save_history(messages, session_id="current"):
+        pass
 
 
 # Configuração da página com layout wide
@@ -762,11 +796,18 @@ if "messages" not in st.session_state:
 if "llm_handler" not in st.session_state:
     st.session_state.llm_handler = None
 
+# Importar configurações do modelo
+try:
+    from model_config import DEFAULT_MODEL, DEFAULT_TEMPERATURE
+except ImportError:
+    DEFAULT_MODEL = "llama2:latest"
+    DEFAULT_TEMPERATURE = 0.7
+
 if "selected_model" not in st.session_state:
-    st.session_state.selected_model = "llama2:latest"
+    st.session_state.selected_model = DEFAULT_MODEL
 
 if "temperature" not in st.session_state:
-    st.session_state.temperature = 0.7
+    st.session_state.temperature = DEFAULT_TEMPERATURE
 
 if "prompt_in_center" not in st.session_state:
     st.session_state.prompt_in_center = False
@@ -783,17 +824,32 @@ if "ollama_url" not in st.session_state:
 if "transcription_method" not in st.session_state:
     st.session_state.transcription_method = os.getenv("TRANSCRIPTION_METHOD", "whisper")
 
+# Configurar timeout (pode ser definido via variável de ambiente ou model_config)
+try:
+    from model_config import MODEL_RULES
+
+    DEFAULT_TIMEOUT = MODEL_RULES.get("timeout_seconds", 120)
+except ImportError:
+    DEFAULT_TIMEOUT = 120
+
+OLLAMA_TIMEOUT = int(
+    os.getenv("OLLAMA_TIMEOUT", str(DEFAULT_TIMEOUT))
+)  # Padrão vem de model_config.py ou 120 segundos
+
 # Auto-inicialização do Ollama
 if st.session_state.llm_handler is None:
     try:
-        st.session_state.llm_handler = create_llm_handler(st.session_state.ollama_url)
-        if (
-            st.session_state.llm_handler
-            and st.session_state.llm_handler.is_configured()
-        ):
-            st.session_state.llm_handler = st.session_state.llm_handler
-    except Exception:
+        st.session_state.llm_handler = create_llm_handler(
+            st.session_state.ollama_url, timeout=OLLAMA_TIMEOUT
+        )
+        # Verificar conexão silenciosamente na inicialização
+        if st.session_state.llm_handler:
+            st.session_state.llm_handler.is_configured()
+    except Exception as e:
         st.session_state.llm_handler = None
+        # Log do erro (pode ser útil para debug)
+        if "connection_debug" not in st.session_state:
+            st.session_state.connection_debug = str(e)
 
 # ========== SIDEBAR ESQUERDA - CHAT ==========
 with st.sidebar:
@@ -915,7 +971,9 @@ with st.sidebar:
         if ollama_url != st.session_state.ollama_url:
             st.session_state.ollama_url = ollama_url
             try:
-                st.session_state.llm_handler = create_llm_handler(ollama_url)
+                st.session_state.llm_handler = create_llm_handler(
+                    ollama_url, timeout=OLLAMA_TIMEOUT
+                )
                 if (
                     st.session_state.llm_handler
                     and st.session_state.llm_handler.is_configured()
@@ -927,24 +985,50 @@ with st.sidebar:
                 st.error(f"❌ Erro ao conectar: {str(e)}")
                 st.session_state.llm_handler = None
 
+        # Status detalhado da conexão
+        if st.session_state.llm_handler:
+            status = st.session_state.llm_handler.get_connection_status()
+            if status["connected"]:
+                st.success(status["message"])
+                st.info(
+                    f"📡 URL: {status['url']} | 📦 Modelos: {status['model_count']}"
+                )
+                if status.get("models"):
+                    st.caption(f"Modelos disponíveis: {', '.join(status['models'])}")
+            else:
+                st.error(status["message"])
+                if status.get("error"):
+                    st.caption(f"Erro: {status['error']}")
+                if status.get("suggestion"):
+                    st.info(f"💡 {status['suggestion']}")
+        else:
+            st.warning("⚠️ Handler não inicializado")
+
         # Botão para reconectar
         if st.button("🔄 Reconectar ao Ollama", use_container_width=True):
             try:
                 st.session_state.llm_handler = create_llm_handler(
-                    st.session_state.ollama_url
+                    st.session_state.ollama_url, timeout=OLLAMA_TIMEOUT
                 )
-                if (
-                    st.session_state.llm_handler
-                    and st.session_state.llm_handler.is_configured()
-                ):
-                    st.success("✅ Conectado com sucesso!")
-                    st.rerun()
+                if st.session_state.llm_handler:
+                    status = st.session_state.llm_handler.get_connection_status()
+                    if status["connected"]:
+                        st.success("✅ Conectado com sucesso!")
+                        st.rerun()
+                    else:
+                        st.error(f"❌ {status['message']}")
+                        if status.get("error"):
+                            st.caption(f"Detalhes: {status['error']}")
+                        if status.get("suggestion"):
+                            st.info(f"💡 {status['suggestion']}")
                 else:
-                    st.error(
-                        "❌ Não foi possível conectar ao Ollama. Verifique se o servidor está rodando."
-                    )
+                    st.error("❌ Não foi possível criar o handler")
             except Exception as e:
                 st.error(f"❌ Erro: {str(e)}")
+                import traceback
+
+                with st.expander("🔍 Detalhes do erro"):
+                    st.code(traceback.format_exc())
 
         # Seleção de modelo - buscar dinamicamente do Ollama
         try:
@@ -1139,7 +1223,19 @@ if "user_input" in locals() and user_input:
         or not st.session_state.llm_handler.is_configured()
     ):
         st.error("⚠️ Ollama não está disponível. Verifique se o servidor está rodando.")
+        logger.warning("Tentativa de enviar mensagem sem Ollama configurado")
     else:
+        # Validar input do usuário
+        if VALIDATION_AVAILABLE:
+            user_input = sanitize_input(user_input)
+            is_valid, error = validate_user_input(user_input)
+            if not is_valid:
+                st.error(f"❌ {error}")
+                logger.warning(f"Input do usuário rejeitado: {error}")
+                st.stop()
+
+        logger.info(f"Mensagem do usuário recebida: {len(user_input)} caracteres")
+
         # Adicionar mensagem do usuário no histórico
         st.session_state.messages.append({"role": "user", "content": user_input})
 
@@ -1147,25 +1243,40 @@ if "user_input" in locals() and user_input:
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        # Gerar resposta em streaming
+        # Gerar resposta
         with st.chat_message("assistant"):
             placeholder = st.empty()
             full_response = ""
 
-            # Gerar resposta
-            response = st.session_state.llm_handler.generate_response(
-                messages=st.session_state.messages,
-                model=st.session_state.selected_model,
-                temperature=st.session_state.temperature,
-            )
+            try:
+                # Gerar resposta (streaming será implementado futuramente)
+                response = st.session_state.llm_handler.generate_response(
+                    messages=st.session_state.messages,
+                    model=st.session_state.selected_model,
+                    temperature=st.session_state.temperature,
+                    stream=False,  # Streaming pode ser ativado aqui
+                )
 
-            placeholder.markdown(response)
-            full_response = response
+                placeholder.markdown(response)
+                full_response = response
+                logger.info(f"Resposta gerada: {len(full_response)} caracteres")
+            except Exception as e:
+                error_msg = f"Erro ao gerar resposta: {str(e)}"
+                placeholder.error(error_msg)
+                logger.error(error_msg, exc_info=True)
+                full_response = error_msg
 
         # Salvar no histórico
         st.session_state.messages.append(
             {"role": "assistant", "content": full_response}
         )
+
+        # Salvar histórico automaticamente
+        if HISTORY_AVAILABLE:
+            try:
+                auto_save_history(st.session_state.messages, "current")
+            except Exception as e:
+                logger.warning(f"Erro ao salvar histórico: {e}")
 
         # Recarregar para atualizar a interface
         st.rerun()
@@ -1315,7 +1426,21 @@ with main_area:
                 st.error(
                     "⚠️ Ollama não está disponível. Verifique se o servidor está rodando."
                 )
+                logger.warning("Tentativa de enviar mensagem sem Ollama configurado")
             else:
+                # Validar input do usuário
+                if VALIDATION_AVAILABLE:
+                    center_user_input = sanitize_input(center_user_input)
+                    is_valid, error = validate_user_input(center_user_input)
+                    if not is_valid:
+                        st.error(f"❌ {error}")
+                        logger.warning(f"Input do usuário rejeitado: {error}")
+                        st.stop()
+
+                logger.info(
+                    f"Mensagem do usuário recebida (centro): {len(center_user_input)} caracteres"
+                )
+
                 # Adicionar mensagem do usuário no histórico
                 st.session_state.messages.append(
                     {"role": "user", "content": center_user_input}
@@ -1325,25 +1450,40 @@ with main_area:
                 with st.chat_message("user"):
                     st.markdown(center_user_input)
 
-                # Gerar resposta em streaming
+                # Gerar resposta
                 with st.chat_message("assistant"):
                     placeholder = st.empty()
                     full_response = ""
 
-                    # Gerar resposta
-                    response = st.session_state.llm_handler.generate_response(
-                        messages=st.session_state.messages,
-                        model=st.session_state.selected_model,
-                        temperature=st.session_state.temperature,
-                    )
+                    try:
+                        # Gerar resposta
+                        response = st.session_state.llm_handler.generate_response(
+                            messages=st.session_state.messages,
+                            model=st.session_state.selected_model,
+                            temperature=st.session_state.temperature,
+                            stream=False,
+                        )
 
-                    placeholder.markdown(response)
-                    full_response = response
+                        placeholder.markdown(response)
+                        full_response = response
+                        logger.info(f"Resposta gerada: {len(full_response)} caracteres")
+                    except Exception as e:
+                        error_msg = f"Erro ao gerar resposta: {str(e)}"
+                        placeholder.error(error_msg)
+                        logger.error(error_msg, exc_info=True)
+                        full_response = error_msg
 
                 # Salvar no histórico
                 st.session_state.messages.append(
                     {"role": "assistant", "content": full_response}
                 )
+
+                # Salvar histórico automaticamente
+                if HISTORY_AVAILABLE:
+                    try:
+                        auto_save_history(st.session_state.messages, "current")
+                    except Exception as e:
+                        logger.warning(f"Erro ao salvar histórico: {e}")
 
                 # Recarregar para atualizar a interface
                 st.rerun()
