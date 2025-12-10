@@ -85,7 +85,7 @@ Aplicação web de chat interativo com IA usando Streamlit e Ollama. Interface m
 
 3. **Configure a conexão**:
 
-   - Na sidebar, expanda "⚙️ Configurações"
+   - Na sidebar, expanda " Configurações"
    - Verifique se a URL do Ollama está correta (padrão: http://localhost:11434)
    - Clique em " Reconectar ao Ollama" se necessário
    - Selecione o modelo desejado (será listado automaticamente)
