@@ -191,26 +191,46 @@ def create_pie_chart(
     """
     try:
         if not PLOTLY_AVAILABLE:
+            logger.error("Plotly não disponível")
             return None
 
-        if values not in df.columns or names not in df.columns:
-            logger.error(f"Colunas {values} ou {names} não encontradas")
+        # Verificar se as colunas existem
+        if values not in df.columns:
+            logger.error(f"Coluna {values} não encontrada no DataFrame")
+            logger.error(f"Colunas disponíveis: {df.columns.tolist()}")
+            return None
+            
+        if names not in df.columns:
+            logger.error(f"Coluna {names} não encontrada no DataFrame")
+            logger.error(f"Colunas disponíveis: {df.columns.tolist()}")
             return None
 
+        # Criar o gráfico
         fig = px.pie(
             df,
             values=values,
             names=names,
-            title=title or f"Distribuição de {values} por {names}",
+            title=title or f"Distribuição de {names}",
+            hole=0.3,  # Donut chart - mais moderno
         )
 
-        fig.update_layout(height=500)
+        # Configurar layout
+        fig.update_traces(
+            textposition='inside',
+            textinfo='percent+label',
+            hovertemplate='<b>%{label}</b><br>Quantidade: %{value}<br>Percentual: %{percent}<extra></extra>'
+        )
+
+        fig.update_layout(
+            height=500,
+            showlegend=True,
+        )
+
         return fig
 
     except Exception as e:
         logger.error(f"Erro ao criar gráfico de pizza: {str(e)}", exc_info=True)
         return None
-
 
 def create_histogram(
     df: pd.DataFrame,
