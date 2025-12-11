@@ -23,9 +23,9 @@ git push -u origin main
 
 ---
 
-##  Passo a Passo Completo
+## Passo a Passo Completo
 
-###  Se é a primeira vez (novo repositório):
+### Se é a primeira vez (novo repositório):
 
 ```bash
 # 1. Inicializar Git
@@ -54,7 +54,7 @@ git remote add origin https://github.com/seu-usuario/projeto-sdk-mk00.git
 git push -u origin main
 ```
 
-###  Se já tem Git configurado:
+### Se já tem Git configurado:
 
 ```bash
 # 1. Ver status
@@ -72,33 +72,34 @@ git push origin main
 
 ---
 
-##  Arquivos que serão commitados
+## Arquivos que serão commitados
 
--  `src/` - Todo o código fonte
--  `tests/` - Todos os testes
--  `docs/` - Documentação
--  `scripts/` - Scripts utilitários
--  `requirements.txt` - Dependências
--  `README.md` - Documentação principal
--  `.gitignore` - Arquivos ignorados
--  `run_app.bat` / `run_app.sh` - Scripts auxiliares
--  `COMMIT_GIT.md` - Este guia
+- `src/` - Todo o código fonte
+- `tests/` - Todos os testes
+- `docs/` - Documentação
+- `scripts/` - Scripts utilitários
+- `requirements.txt` - Dependências
+- `README.md` - Documentação principal
+- `.gitignore` - Arquivos ignorados
+- `run_app.bat` / `run_app.sh` - Scripts auxiliares
+- `COMMIT_GIT.md` - Este guia
 
 ---
 
-##  Arquivos que NÃO serão commitados
+## Arquivos que NÃO serão commitados
 
 O `.gitignore` já está configurado para ignorar:
--  `__pycache__/` - Cache Python
--  `data/` - Dados gerados (logs, histórico)
--  `.env` - Variáveis de ambiente sensíveis
--  `logs/` - Logs antigos
--  `chat_history/` - Histórico antigo
--  `organize_project.py` - Script temporário (opcional)
+
+- `__pycache__/` - Cache Python
+- `data/` - Dados gerados (logs, histórico)
+- `.env` - Variáveis de ambiente sensíveis
+- `logs/` - Logs antigos
+- `chat_history/` - Histórico antigo
+- `organize_project.py` - Script temporário (opcional)
 
 ---
 
-##  Mensagem de Commit Sugerida
+## Mensagem de Commit Sugerida
 
 ### Versão detalhada:
 
@@ -122,7 +123,7 @@ Reorganizar projeto em estrutura modular
 
 ---
 
-##  Verificar antes de commitar
+## Verificar antes de commitar
 
 ```bash
 # Ver o que será commitado
@@ -134,7 +135,7 @@ git diff --cached
 
 ---
 
-##  Importante
+## Importante
 
 1. **Execute sempre da raiz do projeto** (onde está o `README.md`)
 2. **Verifique o `.gitignore`** - certifique-se de que arquivos sensíveis não serão commitados
@@ -143,27 +144,31 @@ git diff --cached
 
 ---
 
-##  Problemas Comuns
+## Problemas Comuns
 
 ### "fatal: not a git repository"
+
 ```bash
 git init
 ```
 
 ### "remote origin already exists"
+
 O remote já existe, pode pular a etapa de adicionar remote.
 
 ### "failed to push some refs"
+
 ```bash
 git pull origin main --rebase
 git push origin main
 ```
 
 ### "authentication failed"
+
 Configure suas credenciais Git ou use SSH keys.
 
 ---
 
-##  Documentação Completa
+## Documentação Completa
 
 Para mais detalhes, veja: `docs/COMMIT_GIT.md`
