@@ -874,6 +874,82 @@ setTimeout(() => {
 setTimeout(() => {
     adjustLayoutForSidebar();
 }, 2000);
+
+// ============================================================================
+// Função para scroll automático para o topo da resposta
+// ============================================================================
+function scrollToResponse() {
+    // Aguardar um pouco para garantir que o DOM foi atualizado
+    setTimeout(() => {
+        let lastResponseElement = null;
+        
+        // Primeiro, procurar pelo ID da resposta (mais eficiente)
+        const responseIds = document.querySelectorAll('[id^="response_"]');
+        if (responseIds.length > 0) {
+            // Pegar o último ID (resposta mais recente)
+            lastResponseElement = responseIds[responseIds.length - 1];
+        }
+        
+        // Se não encontrar pelo ID, procurar pelo texto "Resposta do Assistente"
+        if (!lastResponseElement) {
+            const responseElements = document.querySelectorAll('[data-testid="stMarkdownContainer"]');
+            for (let i = responseElements.length - 1; i >= 0; i--) {
+                const element = responseElements[i];
+                if (element.textContent && element.textContent.includes('Resposta do Assistente')) {
+                    lastResponseElement = element;
+                    break;
+                }
+            }
+        }
+        
+        // Se encontrou, fazer scroll suave para o topo
+        if (lastResponseElement) {
+            lastResponseElement.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start',
+                inline: 'nearest'
+            });
+        } else {
+            // Fallback: scroll para o topo da página principal
+            const mainContent = document.querySelector('.main .block-container');
+            if (mainContent) {
+                mainContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+    }, 300);
+}
+
+// Executar scroll quando a página carregar ou atualizar
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', scrollToResponse);
+} else {
+    scrollToResponse();
+}
+
+// Observar mudanças no DOM para detectar novas respostas
+let lastScrollTime = 0;
+const scrollDebounceDelay = 1000; // Evitar múltiplos scrolls em menos de 1 segundo
+
+const responseObserver = new MutationObserver(() => {
+    const now = Date.now();
+    // Verificar se há uma nova resposta do assistente e evitar scrolls muito frequentes
+    const responseIds = document.querySelectorAll('[id^="response_"]');
+    if (responseIds.length > 0 && (now - lastScrollTime) > scrollDebounceDelay) {
+        lastScrollTime = now;
+        scrollToResponse();
+    }
+});
+
+responseObserver.observe(document.body, {
+    childList: true,
+    subtree: true
+});
+
+// Executar também após delays para garantir que tudo foi renderizado
+setTimeout(scrollToResponse, 500);
+setTimeout(scrollToResponse, 1000);
 </script>
 """,
     unsafe_allow_html=True,
@@ -1506,7 +1582,9 @@ with main_area:
                     unsafe_allow_html=True
                 )
             
-            # Container para resposta
+            # Container para resposta com ID único para scroll
+            response_id = f"response_{len(st.session_state.messages)}"
+            st.markdown(f'<div id="{response_id}"></div>', unsafe_allow_html=True)
             st.markdown("### 📊 Resposta do Assistente")
             st.markdown("---")
 
