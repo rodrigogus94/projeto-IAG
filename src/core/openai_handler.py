@@ -9,6 +9,7 @@ from src.config.openai_model_config import (
     get_system_prompt,
     validate_temperature,
     DEFAULT_TEMPERATURE,
+    DEFAULT_MODEL,
     SYSTEM_MESSAGES,
     VALIDATION_RULES,
     get_model_parameters,
@@ -77,7 +78,7 @@ class OpenAILLMHandler:
 
             # Usar modelo padrão se não fornecido
             if model is None:
-                model = "gpt-3.5-turbo"  # Modelo padrão da OpenAI
+                model = DEFAULT_MODEL  # Modelo padrão da OpenAI (gpt-4.1)
 
             temperature = (
                 temperature if temperature is not None else DEFAULT_TEMPERATURE

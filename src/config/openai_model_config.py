@@ -61,7 +61,7 @@ QUALIDADE:
 DEFAULT_TEMPERATURE = 0.7
 
 # Modelo padrão da OpenAI
-DEFAULT_MODEL = "gpt-3.5-turbo"
+DEFAULT_MODEL = "gpt-4.1"
 
 # Limites de temperatura
 MIN_TEMPERATURE = 0.0
@@ -283,6 +283,12 @@ ADVANCED_CONFIG = {
 # ============================================================================
 
 MODEL_SPECIFIC_CONFIG = {
+    "gpt-4.1": {
+        "max_tokens": 4096,
+        "recommended_temperature": 0.7,
+        "context_length": 128000,
+        "best_for": ["análise avançada", "raciocínio complexo", "código", "análise de dados"],
+    },
     "gpt-4o": {
         "max_tokens": 4096,
         "recommended_temperature": 0.7,

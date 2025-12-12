@@ -548,7 +548,7 @@ def render_chart_if_requested():
 
 # Inicializar tema antes de usar
 if "theme" not in st.session_state:
-    st.session_state.theme = "escuro"  # "claro" ou "escuro" - padrão: escuro
+    st.session_state.theme = "claro"  # "claro" ou "escuro" - padrão: claro
 
 # Aplicar CSS do tema usando o novo módulo
 st.markdown(generate_theme_css(st.session_state.theme), unsafe_allow_html=True)
@@ -961,7 +961,7 @@ try:
     from src.config.openai_model_config import DEFAULT_MODEL as OPENAI_DEFAULT_MODEL
 except ImportError:
     OLLAMA_DEFAULT_MODEL = "llama2:latest"
-    OPENAI_DEFAULT_MODEL = "gpt-3.5-turbo"
+    OPENAI_DEFAULT_MODEL = "gpt-4.1"
     DEFAULT_TEMPERATURE = 0.7
 
 # Inicialização do session_state
@@ -1384,9 +1384,9 @@ with st.sidebar:
         st.markdown("### 🎨 Aparência")
         theme = st.selectbox(
             "Tema da página",
-            ["escuro", "claro"],  # Escuro primeiro (padrão)
-            index=0 if st.session_state.theme == "escuro" else 1,
-            help="Escolha entre tema escuro ou claro",
+            ["claro", "escuro"],  # Claro primeiro (padrão)
+            index=0 if st.session_state.theme == "claro" else 1,
+            help="Escolha entre tema claro ou escuro",
         )
 
         if theme != st.session_state.theme:

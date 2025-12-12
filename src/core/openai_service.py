@@ -15,6 +15,7 @@ class OpenAIService:
 
     # Modelos disponíveis da OpenAI
     AVAILABLE_MODELS = [
+        "gpt-4.1",
         "gpt-4o",
         "gpt-4o-mini",
         "gpt-4-turbo",
