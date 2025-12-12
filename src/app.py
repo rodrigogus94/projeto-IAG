@@ -204,57 +204,153 @@ def get_theme_css(theme):
 # FUNÇÕES AUXILIARES
 # ============================================================================
 
-def _display_typing_effect(placeholder, full_text, speed=25):
+def _display_typing_effect(placeholder, full_text, response_id, speed=30):
     """
-    Exibe texto com efeito de digitação (typing effect).
+    Exibe texto com efeito de digitação usando JavaScript no cliente.
+    Inclui scroll automático para acompanhar a digitação.
     
     Args:
         placeholder: Streamlit placeholder para atualizar
         full_text: Texto completo a ser exibido
-        speed: Velocidade de digitação em palavras por segundo (padrão: 25)
+        response_id: ID do container da resposta para scroll
+        speed: Velocidade de digitação em caracteres por segundo (padrão: 30)
     """
-    import time
+    import json
+    import hashlib
     
-    displayed_text = ""
-    delay = 1.0 / speed  # Delay entre palavras
+    # Escapar o texto para JavaScript
+    escaped_text = json.dumps(full_text)
     
-    # Dividir texto em palavras para melhor efeito visual
-    words = full_text.split(' ')
+    # Criar ID único baseado no texto para evitar conflitos
+    text_hash = hashlib.md5(full_text.encode()).hexdigest()[:8]
+    unique_id = f"typing_{text_hash}"
     
-    for i, word in enumerate(words):
-        # Adicionar palavra atual
-        if displayed_text:
-            displayed_text += " " + word
-        else:
-            displayed_text = word
-        
-        # Atualizar placeholder com texto atual e cursor piscante
-        with placeholder.container():
-            st.markdown(
-                f"""
-                <div style="padding: 1rem; border-radius: 8px; background-color: transparent;">
-                    {displayed_text}<span style="animation: blink 1s infinite;">▊</span>
-                </div>
-                <style>
-                @keyframes blink {{
-                    0%, 50% {{ opacity: 1; }}
-                    51%, 100% {{ opacity: 0; }}
+    # Criar HTML com JavaScript para efeito de digitação
+    typing_html = f"""
+    <div id="{unique_id}-container" style="padding: 1rem 0; line-height: 1.8;">
+        <div id="{unique_id}-text" style="white-space: pre-wrap; word-wrap: break-word; color: inherit;"></div>
+        <span id="{unique_id}-cursor" style="animation: blink-{unique_id} 1s infinite; color: #667eea; font-weight: bold; margin-left: 2px;">▊</span>
+    </div>
+    
+    <script>
+        (function() {{
+            const text = {escaped_text};
+            const container = document.getElementById('{unique_id}-text');
+            const cursor = document.getElementById('{unique_id}-cursor');
+            const responseContainer = document.getElementById('{response_id}');
+            
+            if (!container) {{
+                setTimeout(arguments.callee, 50);
+                return;
+            }}
+            
+            const speed = {speed}; // caracteres por segundo
+            const delay = 1000 / speed; // delay em ms
+            
+            let index = 0;
+            let displayedText = '';
+            
+            function typeChar() {{
+                if (index < text.length) {{
+                    const char = text[index];
+                    displayedText += char;
+                    
+                    // Converter markdown básico para HTML
+                    let htmlText = displayedText
+                        .replace(/\\n/g, '<br>')
+                        .replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>')
+                        .replace(/\\*(.*?)\\*/g, '<em>$1</em>')
+                        .replace(/`([^`]+)`/g, '<code style="background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px; font-family: monospace;">$1</code>')
+                        .replace(/#{{3}}\\s+(.+)/g, '<h3>$1</h3>')
+                        .replace(/#{{2}}\\s+(.+)/g, '<h2>$1</h2>')
+                        .replace(/^[-*]\\s+(.+)$/gm, '<li>$1</li>');
+                    
+                    container.innerHTML = htmlText;
+                    
+                    // Scroll automático para acompanhar a digitação
+                    if (responseContainer) {{
+                        responseContainer.scrollIntoView({{ behavior: 'smooth', block: 'nearest' }});
+                    }} else {{
+                        // Fallback: scroll para o container de digitação
+                        const typingContainer = document.getElementById('{unique_id}-container');
+                        if (typingContainer) {{
+                            typingContainer.scrollIntoView({{ behavior: 'smooth', block: 'nearest' }});
+                        }}
+                    }}
+                    
+                    index++;
+                    
+                    // Ajustar velocidade baseado no caractere
+                    let charDelay = delay;
+                    if (char === '\\n') {{
+                        charDelay = delay * 2;
+                    }} else if (['.', '!', '?'].includes(char)) {{
+                        charDelay = delay * 3;
+                    }} else if ([',', ';', ':'].includes(char)) {{
+                        charDelay = delay * 1.5;
+                    }} else if (char === ' ') {{
+                        charDelay = delay * 0.5;
+                    }}
+                    
+                    setTimeout(typeChar, charDelay);
+                }} else {{
+                    // Remover cursor quando terminar
+                    if (cursor) {{
+                        cursor.style.display = 'none';
+                    }}
+                    
+                    // Scroll final para garantir visibilidade completa
+                    setTimeout(() => {{
+                        if (responseContainer) {{
+                            responseContainer.scrollIntoView({{ behavior: 'smooth', block: 'end' }});
+                        }}
+                    }}, 200);
                 }}
-                </style>
-                """,
-                unsafe_allow_html=True
-            )
+            }}
+            
+            // Iniciar digitação após um pequeno delay
+            setTimeout(typeChar, 100);
+        }})();
+    </script>
+    
+    <style>
+        @keyframes blink-{unique_id} {{
+            0%, 50% {{ opacity: 1; }}
+            51%, 100% {{ opacity: 0; }}
+        }}
         
-        # Delay baseado no tamanho da palavra (palavras maiores = mais tempo)
-        word_delay = delay * (1 + len(word) * 0.05)  # Ajustar velocidade
-        time.sleep(min(word_delay, 0.15))  # Limitar delay máximo
+        #{unique_id}-container {{
+            font-size: 1rem;
+            line-height: 1.8;
+        }}
+        
+        #{unique_id}-text code {{
+            background: rgba(0,0,0,0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }}
+        
+        #{unique_id}-text h2, #{unique_id}-text h3 {{
+            margin: 1rem 0 0.5rem 0;
+            font-weight: 600;
+        }}
+        
+        #{unique_id}-text li {{
+            margin: 0.3rem 0;
+            padding-left: 1rem;
+        }}
+    </style>
+    """
     
-    # Remover cursor e mostrar texto final
-    with placeholder.container():
-        st.markdown(displayed_text)
+    placeholder.markdown(typing_html, unsafe_allow_html=True)
     
-    # Pequeno delay final
-    time.sleep(0.2)
+    # Limpar flag após um tempo estimado (tempo de digitação + margem)
+    import time
+    estimated_time = (len(full_text) / speed) + 2  # +2 segundos de margem
+    if not hasattr(st.session_state, 'typing_cleanup_time'):
+        st.session_state.typing_cleanup_time = time.time() + estimated_time
 
 
 def process_audio_file(audio_file, transcription_method):
@@ -339,9 +435,6 @@ def process_user_message(user_input):
     
     # Criar placeholder para mostrar indicador de pensando
     thinking_placeholder = st.empty()
-    
-    # Criar placeholder para exibir resposta sendo escrita
-    typing_placeholder = st.empty()
     
     # Mostrar indicador de pensando imediatamente
     with thinking_placeholder.container():
@@ -431,17 +524,9 @@ def process_user_message(user_input):
             
             logger.info(f"Orquestrador processou: resposta={len(full_response)} caracteres, gráfico={'sim' if chart_to_display else 'não'}")
             
-            # Limpar indicador de pensando
-            thinking_placeholder.empty()
-            
-            # Exibir resposta com efeito de digitação na área principal
-            if full_response:
-                # Criar container temporário na área principal para mostrar efeito de digitação
-                with st.container():
-                    st.markdown("### 📊 Resposta do Agente de Análise")
-                    st.markdown("---")
-                    typing_container = st.empty()
-                    _display_typing_effect(typing_container, full_response)
+            # Adicionar delay adicional baseado no tamanho da resposta
+            additional_delay = min(2.0, max(0.5, len(full_response) / 500))
+            time.sleep(additional_delay)
             
         else:
             # ============================================================
@@ -522,34 +607,28 @@ Pergunta do usuário: {user_input}"""
             full_response = response
             logger.info(f"Resposta gerada: {len(full_response)} caracteres")
             
-            # Limpar indicador de pensando
-            thinking_placeholder.empty()
-            
-            # Exibir resposta com efeito de digitação na área principal
-            if full_response:
-                # Criar container temporário na área principal para mostrar efeito de digitação
-                with st.container():
-                    st.markdown("### 📊 Resposta do Assistente")
-                    st.markdown("---")
-                    typing_container = st.empty()
-                    _display_typing_effect(typing_container, full_response)
+            # Adicionar delay adicional baseado no tamanho da resposta (simular processamento)
+            # Delay adicional: 0.5-2 segundos baseado no tamanho
+            additional_delay = min(2.0, max(0.5, len(full_response) / 500))
+            time.sleep(additional_delay)
         
-        # Limpar indicador de pensando se ainda estiver visível
+        # Limpar indicador de pensando
         thinking_placeholder.empty()
+        
+        # Armazenar resposta para exibir com efeito de digitação
+        st.session_state.typing_response = full_response
+        st.session_state.show_typing = True
     except Exception as e:
         error_msg = f"Erro ao gerar resposta: {str(e)}"
         logger.error(error_msg, exc_info=True)
         full_response = error_msg
-        # Limpar indicadores em caso de erro
+        # Limpar indicador de pensando em caso de erro
         thinking_placeholder.empty()
-        typing_placeholder.empty()
-        # Mostrar erro imediatamente
-        with typing_placeholder.container():
-            st.error(error_msg)
+        st.session_state.typing_response = error_msg
+        st.session_state.show_typing = True
     
-    # Salvar no histórico (apenas se houver resposta)
-    if full_response:
-        st.session_state.messages.append({"role": "assistant", "content": full_response})
+    # Salvar no histórico
+    st.session_state.messages.append({"role": "assistant", "content": full_response})
     
     # Salvar histórico automaticamente
     if HISTORY_AVAILABLE:
@@ -1815,10 +1894,20 @@ with main_area:
             
             st.markdown("---")
 
+            # Verificar se deve exibir com efeito de digitação
+            show_typing = hasattr(st.session_state, 'show_typing') and st.session_state.show_typing
+            typing_text = st.session_state.get('typing_response', last_response) if show_typing else None
+            
             # Exibir resposta formatada
             response_container = st.container()
             with response_container:
-                st.markdown(last_response)
+                if show_typing and typing_text:
+                    # Exibir com efeito de digitação
+                    typing_placeholder = st.empty()
+                    _display_typing_effect(typing_placeholder, typing_text, response_id)
+                else:
+                    # Exibir resposta completa normalmente
+                    st.markdown(last_response)
 
                 # Botões de ação - apenas ícones
                 col1, col2, col3 = st.columns(3)
@@ -1832,6 +1921,11 @@ with main_area:
                             # Limpar gráfico do orquestrador se existir
                             if "last_generated_chart" in st.session_state:
                                 st.session_state.last_generated_chart = None
+                            # Limpar flags de digitação
+                            if "show_typing" in st.session_state:
+                                del st.session_state.show_typing
+                            if "typing_response" in st.session_state:
+                                del st.session_state.typing_response
                             st.rerun()
 
                 with col2:
@@ -1844,16 +1938,37 @@ with main_area:
                         # Limpar gráfico do orquestrador se existir
                         if "last_generated_chart" in st.session_state:
                             st.session_state.last_generated_chart = None
+                        # Limpar flags de digitação
+                        if "show_typing" in st.session_state:
+                            del st.session_state.show_typing
+                        if "typing_response" in st.session_state:
+                            del st.session_state.typing_response
                         st.rerun()
 
             # GERAR GRÁFICO AUTOMATICAMENTE (FORA do response_container)
             # Forçar atualização do gráfico sempre que houver nova resposta
             # Isso funciona tanto para modo tradicional quanto para orquestrador
-            render_chart_if_requested()
+            # Só renderizar gráfico após a digitação terminar
+            if not show_typing:
+                render_chart_if_requested()
         else:
             # Mesmo se não houver resposta do assistente ainda, verificar se há solicitação de gráfico
             # Isso garante que gráficos sejam exibidos mesmo em casos especiais
             render_chart_if_requested()
+        
+        # Limpar flag de digitação após o tempo estimado
+        import time
+        if hasattr(st.session_state, 'typing_cleanup_time'):
+            if time.time() >= st.session_state.typing_cleanup_time:
+                if hasattr(st.session_state, 'show_typing'):
+                    st.session_state.show_typing = False
+                if hasattr(st.session_state, 'typing_response'):
+                    del st.session_state.typing_response
+                if hasattr(st.session_state, 'typing_cleanup_time'):
+                    del st.session_state.typing_cleanup_time
+                # Renderizar gráfico após digitação terminar
+                render_chart_if_requested()
+                st.rerun()
 
     # Prompt e gravador sempre no centro, abaixo da tela
     st.markdown("<br><br>", unsafe_allow_html=True)  # Espaço antes do prompt
