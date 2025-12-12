@@ -45,38 +45,38 @@ DARK_THEME = {
 
 # Tema Claro
 LIGHT_THEME = {
-    # Cores principais
-    "bg_primary": "#ffffff",  # Fundo principal
-    "bg_secondary": "#f8f9fa",  # Fundo secundário (sidebar)
-    "bg_tertiary": "#ffffff",  # Fundo terciário (cards, inputs)
-    "bg_hover": "#e9ecef",  # Hover states
+    # Cores principais - Tons mais escuros e acinzentados, menos brancos
+    "bg_primary": "#e8eaed",  # Fundo principal - cinza claro médio (mais escuro)
+    "bg_secondary": "#dadce0",  # Fundo secundário (sidebar) - cinza claro
+    "bg_tertiary": "#f1f3f4",  # Fundo terciário (cards, inputs) - cinza muito claro
+    "bg_hover": "#c8cbd0",  # Hover states - cinza médio claro
     # Cores de texto
-    "text_primary": "#212529",  # Texto principal
-    "text_secondary": "#495057",  # Texto secundário
-    "text_tertiary": "#6c757d",  # Texto terciário (placeholder)
+    "text_primary": "#202124",  # Texto principal - quase preto suave
+    "text_secondary": "#3c4043",  # Texto secundário - cinza escuro
+    "text_tertiary": "#5f6368",  # Texto terciário (placeholder) - cinza médio
     # Cores de borda
-    "border": "#dee2e6",
-    "border_light": "#e9ecef",
+    "border": "#bdc1c6",  # Borda - cinza médio
+    "border_light": "#dadce0",  # Borda clara - cinza claro
     # Cores de destaque
     "accent": "#667eea",  # Cor de destaque principal
     "accent_hover": "#764ba2",  # Cor de destaque hover
     "accent_light": "#a0b4ff",  # Cor de destaque clara
     # Cores de mensagens
-    "user_message_bg": "#f0f0f0",
-    "assistant_message_bg": "#e8f4f8",
-    "message_text": "#333333",
+    "user_message_bg": "#d0d3d8",  # Fundo mensagem usuário - cinza médio claro
+    "assistant_message_bg": "#d2e3f0",  # Fundo mensagem assistente - azul cinza claro
+    "message_text": "#202124",  # Texto mensagem - quase preto
     # Cores de alertas
-    "info_bg": "#d1ecf1",
-    "success_bg": "#d4edda",
-    "warning_bg": "#fff3cd",
-    "error_bg": "#f8d7da",
+    "info_bg": "#c5d9f0",  # Info - azul cinza claro
+    "success_bg": "#c8e6c9",  # Success - verde cinza claro
+    "warning_bg": "#ffe0b2",  # Warning - amarelo cinza claro
+    "error_bg": "#ffcdd2",  # Error - vermelho cinza claro
     # Cores de código
-    "code_bg": "#f8f9fa",
-    "code_text": "#e83e8c",
+    "code_bg": "#e8eaed",  # Fundo código - cinza claro médio
+    "code_text": "#c2185b",  # Texto código - rosa escuro
     # Scrollbar
-    "scrollbar_track": "#f1f1f1",
-    "scrollbar_thumb": "#c1c1c1",
-    "scrollbar_thumb_hover": "#a8a8a8",
+    "scrollbar_track": "#dadce0",  # Track scrollbar - cinza claro
+    "scrollbar_thumb": "#80868b",  # Thumb scrollbar - cinza médio escuro
+    "scrollbar_thumb_hover": "#5f6368",  # Thumb hover - cinza escuro
 }
 
 
@@ -784,16 +784,45 @@ def _generate_light_theme_css(colors: dict) -> str:
         background-color: {colors['bg_hover']} !important;
     }}
     
-    [data-testid="stChatInput"] textarea {{
-        background-color: {colors['bg_primary']} !important;
-        border-color: {colors['border']} !important;
-        border-radius: 12px !important;
-    }}
-    
-    [data-testid="stChatInput"] textarea:focus {{
-        border-color: {colors['accent']} !important;
-        box-shadow: 0 0 0 2px {colors['accent']}33 !important;
-    }}
+     [data-testid="stChatInput"] textarea {{
+         background-color: {colors['bg_tertiary']} !important;
+         border-color: {colors['border']} !important;
+         border-radius: 12px !important;
+         color: {colors['text_primary']} !important;
+     }}
+     
+     [data-testid="stChatInput"] textarea:focus {{
+         background-color: {colors['bg_tertiary']} !important;
+         border-color: {colors['accent']} !important;
+         box-shadow: 0 0 0 2px {colors['accent']}33 !important;
+     }}
+     
+     [data-testid="stChatInput"] textarea::placeholder {{
+         color: {colors['text_tertiary']} !important;
+         opacity: 0.7 !important;
+     }}
+     
+     /* Container do chat input */
+     [data-testid="stChatInput"] {{
+         background-color: transparent !important;
+     }}
+     
+     [data-testid="stChatInput"] > div {{
+         background-color: {colors['bg_tertiary']} !important;
+         border: 1px solid {colors['border']} !important;
+         border-radius: 12px !important;
+     }}
+     
+     /* Sobrescrever qualquer fundo branco no chat input */
+     [data-testid="stChatInput"] * {{
+         background-color: {colors['bg_tertiary']} !important;
+     }}
+     
+     [data-testid="stChatInput"] input,
+     [data-testid="stChatInput"] textarea {{
+         background-color: {colors['bg_tertiary']} !important;
+         color: {colors['text_primary']} !important;
+     }}
     
     /* Botões */
     .stButton > button {{

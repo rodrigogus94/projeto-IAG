@@ -1475,40 +1475,6 @@ with st.sidebar:
 
         st.markdown("---")
 
-        # Configuração do modo de agentes
-        if AGENT_ORCHESTRATOR_AVAILABLE:
-            st.markdown("### 🤖 Modo de Agentes")
-            use_orchestrator = st.checkbox(
-                "Usar dois agentes especialistas",
-                value=st.session_state.use_agent_orchestrator,
-                help="""Quando habilitado, o sistema usa dois agentes trabalhando em conjunto:
-                
-                • Agente de Análise: Entende perguntas e gera respostas textuais detalhadas
-                • Agente de Gráficos: Analisa a resposta e determina qual gráfico gerar
-                
-                Quando desabilitado, usa o modo tradicional (um único agente)."""
-            )
-            
-            if use_orchestrator != st.session_state.use_agent_orchestrator:
-                st.session_state.use_agent_orchestrator = use_orchestrator
-                # Reinicializar orquestrador se necessário
-                if use_orchestrator and st.session_state.llm_handler:
-                    try:
-                        st.session_state.agent_orchestrator = AgentOrchestrator(st.session_state.llm_handler)
-                        logger.info("AgentOrchestrator reinicializado")
-                    except Exception as e:
-                        logger.warning(f"Erro ao reinicializar AgentOrchestrator: {str(e)}")
-                elif not use_orchestrator:
-                    st.session_state.agent_orchestrator = None
-                st.rerun()
-            
-            if st.session_state.use_agent_orchestrator:
-                st.info("✅ Modo de dois agentes ativo: Agente de Análise + Agente de Gráficos")
-            else:
-                st.info("ℹ️ Modo tradicional: um único agente")
-
-        st.markdown("---")
-
         # Configuração de transcrição de áudio
         st.markdown("### 🎙️ Transcrição de Áudio")
         
