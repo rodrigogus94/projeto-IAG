@@ -402,6 +402,7 @@ def initialize_session_state():
         "messages": [],
         "llm_handler": None,
         "selected_model": DEFAULT_MODEL,
+        "previous_model": DEFAULT_MODEL,
         "temperature": DEFAULT_TEMPERATURE,
         "prompt_in_center": True,
         "audio_transcribed": None,
@@ -1167,9 +1168,17 @@ with st.sidebar:
                         else 0
                     )
                     model_label = f"Modelo {provider_name}"
-                    st.session_state.selected_model = st.selectbox(
+                    new_selected_model = st.selectbox(
                         model_label, available_models, index=current_index
                     )
+                    
+                    # Verificar se o modelo mudou
+                    if new_selected_model != st.session_state.selected_model:
+                        st.session_state.selected_model = new_selected_model
+                        st.session_state.previous_model = new_selected_model
+                        st.rerun()  # Atualizar status do sistema
+                    else:
+                        st.session_state.selected_model = new_selected_model
                 else:
                     if st.session_state.llm_provider == "ollama":
                         st.warning(
@@ -1177,19 +1186,31 @@ with st.sidebar:
                         )
                     else:
                         st.warning("⚠️ Nenhum modelo disponível")
-                    st.session_state.selected_model = st.text_input(
+                    new_model_input = st.text_input(
                         "Digite o nome do modelo", value=st.session_state.selected_model
                     )
+                    if new_model_input != st.session_state.selected_model:
+                        st.session_state.selected_model = new_model_input
+                        st.session_state.previous_model = new_model_input
+                        st.rerun()  # Atualizar status do sistema
             else:
                 st.warning(f"⚠️ Conecte ao {provider_name} primeiro")
-                st.session_state.selected_model = st.text_input(
+                new_model_input = st.text_input(
                     "Nome do modelo", value=st.session_state.selected_model
                 )
+                if new_model_input != st.session_state.selected_model:
+                    st.session_state.selected_model = new_model_input
+                    st.session_state.previous_model = new_model_input
+                    st.rerun()  # Atualizar status do sistema
         except Exception as e:
             st.error(f"Erro ao listar modelos: {str(e)}")
-            st.session_state.selected_model = st.text_input(
+            new_model_input = st.text_input(
                 "Nome do modelo", value=st.session_state.selected_model
             )
+            if new_model_input != st.session_state.selected_model:
+                st.session_state.selected_model = new_model_input
+                st.session_state.previous_model = new_model_input
+                st.rerun()  # Atualizar status do sistema
 
         # Controle de temperatura
         st.session_state.temperature = st.slider(
