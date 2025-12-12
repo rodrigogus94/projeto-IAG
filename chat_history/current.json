@@ -1,0 +1,16 @@
+{
+  "session_id": "current",
+  "created_at": "2025-12-10T18:51:21.157424",
+  "updated_at": "2025-12-10T18:51:21.157424",
+  "message_count": 2,
+  "messages": [
+    {
+      "role": "user",
+      "content": "oi"
+    },
+    {
+      "role": "assistant",
+      "content": "Bem-vindo à minha presença, eu sou Omnilink AI! Estou aqui para ajudá-lo em tarefas de análise e visualização de dados, criando dashboards e explicando conceitos técnicos de forma clara e objetiva. Como um assistente de IA inteligente e prestativo, estou disponível 24x7 para atender às suas perguntas e need help.\n\nPara começar, por favor, informe-me sobre o seu projeto ou problema atual e qual é o objetivo que você tem em mente. Eu estouo disponível para ajudá-lo a alcançar esse objetivo com as ferramentas e recursos necessários.\n\nRemember, I'm here to help you in a friendly and professional manner, so please feel free to ask me anything!"
+    }
+  ]
+}

@@ -270,9 +270,36 @@ def process_user_message(user_input):
         full_response = ""
         
         try:
+            # Preparar contexto dos dados se disponível
+            messages_to_send = st.session_state.messages.copy()
+            
+            # Adicionar contexto dos dados na primeira mensagem
+            if len(messages_to_send) == 1 and st.session_state.veiculos_df is not None:
+                df = st.session_state.veiculos_df
+                data_context = f"""[DADOS DISPONÍVEIS - Arquivo: dados_veiculos_300.csv]
+    Total: {len(df)} veículos | Colunas: {', '.join(df.columns.tolist())}
+    Status: Ativos={len(df[df['status'] == 'ativo'])}, Manutenção={len(df[df['status'] == 'manutencao'])}, Inativos={len(df[df['status'] == 'inativo'])}
+
+    [INSTRUÇÃO CRÍTICA] Este é um sistema web que gera gráficos AUTOMATICAMENTE. NUNCA forneça código Python. Apenas analise os dados e apresente insights. O gráfico já aparece sozinho na tela.
+
+    Pergunta: {user_input}"""
+                
+                messages_to_send[0] = {"role": "user", "content": data_context}
+            
+            # SEMPRE verificar se é pedido de gráfico e reforçar a instrução
+            user_input_lower = user_input.lower()
+            if any(palavra in user_input_lower for palavra in ['gráfico', 'grafico', 'chart', 'visualização', 'visualizacao', 'plot']):
+                # Modificar a última mensagem do usuário para incluir a instrução
+                ultima_msg = messages_to_send[-1]["content"]
+                messages_to_send[-1]["content"] = f"""🚨 IMPORTANTE: O sistema JÁ gera o gráfico automaticamente. NÃO forneça código. Apenas analise os dados.
+
+    {ultima_msg}
+
+    Responda APENAS com análise dos dados (números, percentuais, insights). O gráfico aparece sozinho."""
+            
             # Gerar resposta
             response = st.session_state.llm_handler.generate_response(
-                messages=st.session_state.messages,
+                messages=messages_to_send,
                 model=st.session_state.selected_model,
                 temperature=st.session_state.temperature,
                 stream=False,
@@ -349,6 +376,7 @@ def initialize_llm_handler():
 
 def render_chart_if_requested():
     """
+<<<<<<< HEAD
     Detecta se o usuário solicitou um gráfico e renderiza se apropriado.
     """
     if not (DATA_AVAILABLE and CHARTS_AVAILABLE and st.session_state.veiculos_df is not None):
@@ -392,7 +420,6 @@ def render_chart_if_requested():
                     display_chart(chart)
     except Exception as e:
         logger.warning(f"Erro ao gerar gráfico: {e}")
-
 
 # Inicializar tema antes de usar
 if "theme" not in st.session_state:
@@ -1236,6 +1263,7 @@ with main_area:
             with response_container:
                 st.markdown(last_response)
 
+<<<<<<< HEAD
                 # Tentar gerar gráfico se o usuário solicitou
                 render_chart_if_requested()
 
@@ -1259,6 +1287,31 @@ with main_area:
                         st.session_state.messages = []
                         st.rerun()
 
+=======
+            # GERAR GRÁFICO AUTOMATICAMENTE (FORA do response_container)
+            render_chart_if_requested()
+
+            # Botões de ação - apenas ícones
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                if st.button("🔄", use_container_width=True, key="btn_regenerar"):
+                    # Remove última resposta e regenera
+                    if len(st.session_state.messages) >= 2:
+                        st.session_state.messages.pop()
+                        st.session_state.messages.pop()
+                        st.rerun()
+
+            with col2:
+                if st.button("📋", use_container_width=True, key="btn_copiar"):
+                    st.success("Resposta copiada!")
+
+            with col3:
+                if st.button("🗑️", use_container_width=True, key="btn_limpar"):
+                    st.session_state.messages = []
+                    st.rerun()
+
+>>>>>>> 9ff461a1e44d6fbdeb3e94597c4e3346c0321e91
         # Histórico completo (colapsável)
         if len(st.session_state.messages) > 2:
             with st.expander("📜 Histórico Completo da Conversa"):
