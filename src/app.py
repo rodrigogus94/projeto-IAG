@@ -204,6 +204,59 @@ def get_theme_css(theme):
 # FUNÇÕES AUXILIARES
 # ============================================================================
 
+def _display_typing_effect(placeholder, full_text, speed=25):
+    """
+    Exibe texto com efeito de digitação (typing effect).
+    
+    Args:
+        placeholder: Streamlit placeholder para atualizar
+        full_text: Texto completo a ser exibido
+        speed: Velocidade de digitação em palavras por segundo (padrão: 25)
+    """
+    import time
+    
+    displayed_text = ""
+    delay = 1.0 / speed  # Delay entre palavras
+    
+    # Dividir texto em palavras para melhor efeito visual
+    words = full_text.split(' ')
+    
+    for i, word in enumerate(words):
+        # Adicionar palavra atual
+        if displayed_text:
+            displayed_text += " " + word
+        else:
+            displayed_text = word
+        
+        # Atualizar placeholder com texto atual e cursor piscante
+        with placeholder.container():
+            st.markdown(
+                f"""
+                <div style="padding: 1rem; border-radius: 8px; background-color: transparent;">
+                    {displayed_text}<span style="animation: blink 1s infinite;">▊</span>
+                </div>
+                <style>
+                @keyframes blink {{
+                    0%, 50% {{ opacity: 1; }}
+                    51%, 100% {{ opacity: 0; }}
+                }}
+                </style>
+                """,
+                unsafe_allow_html=True
+            )
+        
+        # Delay baseado no tamanho da palavra (palavras maiores = mais tempo)
+        word_delay = delay * (1 + len(word) * 0.05)  # Ajustar velocidade
+        time.sleep(min(word_delay, 0.15))  # Limitar delay máximo
+    
+    # Remover cursor e mostrar texto final
+    with placeholder.container():
+        st.markdown(displayed_text)
+    
+    # Pequeno delay final
+    time.sleep(0.2)
+
+
 def process_audio_file(audio_file, transcription_method):
     """
     Processa um arquivo de áudio e retorna o texto transcrito.
@@ -286,6 +339,9 @@ def process_user_message(user_input):
     
     # Criar placeholder para mostrar indicador de pensando
     thinking_placeholder = st.empty()
+    
+    # Criar placeholder para exibir resposta sendo escrita
+    typing_placeholder = st.empty()
     
     # Mostrar indicador de pensando imediatamente
     with thinking_placeholder.container():
@@ -375,9 +431,17 @@ def process_user_message(user_input):
             
             logger.info(f"Orquestrador processou: resposta={len(full_response)} caracteres, gráfico={'sim' if chart_to_display else 'não'}")
             
-            # Adicionar delay adicional baseado no tamanho da resposta
-            additional_delay = min(2.0, max(0.5, len(full_response) / 500))
-            time.sleep(additional_delay)
+            # Limpar indicador de pensando
+            thinking_placeholder.empty()
+            
+            # Exibir resposta com efeito de digitação na área principal
+            if full_response:
+                # Criar container temporário na área principal para mostrar efeito de digitação
+                with st.container():
+                    st.markdown("### 📊 Resposta do Agente de Análise")
+                    st.markdown("---")
+                    typing_container = st.empty()
+                    _display_typing_effect(typing_container, full_response)
             
         else:
             # ============================================================
@@ -458,22 +522,34 @@ Pergunta do usuário: {user_input}"""
             full_response = response
             logger.info(f"Resposta gerada: {len(full_response)} caracteres")
             
-            # Adicionar delay adicional baseado no tamanho da resposta (simular processamento)
-            # Delay adicional: 0.5-2 segundos baseado no tamanho
-            additional_delay = min(2.0, max(0.5, len(full_response) / 500))
-            time.sleep(additional_delay)
+            # Limpar indicador de pensando
+            thinking_placeholder.empty()
+            
+            # Exibir resposta com efeito de digitação na área principal
+            if full_response:
+                # Criar container temporário na área principal para mostrar efeito de digitação
+                with st.container():
+                    st.markdown("### 📊 Resposta do Assistente")
+                    st.markdown("---")
+                    typing_container = st.empty()
+                    _display_typing_effect(typing_container, full_response)
         
-        # Limpar indicador de pensando
+        # Limpar indicador de pensando se ainda estiver visível
         thinking_placeholder.empty()
     except Exception as e:
         error_msg = f"Erro ao gerar resposta: {str(e)}"
         logger.error(error_msg, exc_info=True)
         full_response = error_msg
-        # Limpar indicador de pensando em caso de erro
+        # Limpar indicadores em caso de erro
         thinking_placeholder.empty()
+        typing_placeholder.empty()
+        # Mostrar erro imediatamente
+        with typing_placeholder.container():
+            st.error(error_msg)
     
-    # Salvar no histórico
-    st.session_state.messages.append({"role": "assistant", "content": full_response})
+    # Salvar no histórico (apenas se houver resposta)
+    if full_response:
+        st.session_state.messages.append({"role": "assistant", "content": full_response})
     
     # Salvar histórico automaticamente
     if HISTORY_AVAILABLE:
