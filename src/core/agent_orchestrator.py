@@ -99,24 +99,49 @@ PALAVRAS-CHAVE QUE INDICAM SOLICITAÇÃO EXPLÍCITA DE GRÁFICO:
 - Há palavras-chave claras de solicitação de visualização
 - A intenção é claramente de visualizar dados graficamente
 
-SUA RESPONSABILIDADE:
-- Analisar a pergunta ORIGINAL do usuário (não apenas a resposta do Agente de Análise)
-- Verificar se há solicitação EXPLÍCITA de gráfico
-- Se SIM: identificar qual tipo de gráfico seria mais apropriado
-- Se NÃO: retornar should_generate_chart = false
+SUA RESPONSABILIDADE PRINCIPAL:
+1. PRIMEIRO: Verificar na pergunta ORIGINAL do usuário se há solicitação EXPLÍCITA de gráfico
+2. SEGUNDO: Se SIM, analisar a RESPOSTA DO AGENTE DE ANÁLISE para extrair:
+   - Quais colunas/dados foram mencionados na resposta
+   - Quais métricas ou valores foram destacados
+   - Qual tipo de análise foi feita (comparação, distribuição, tendência, etc.)
+3. TERCEIRO: Usar essas informações da resposta para determinar:
+   - Qual tipo de gráfico é mais apropriado
+   - Quais colunas usar (x_column, y_column, category_column)
+   - Qual título seria mais descritivo
 
-ANÁLISE DA PERGUNTA DO USUÁRIO:
-Você receberá tanto a pergunta original quanto a resposta do Agente de Análise.
-Foque PRINCIPALMENTE na pergunta original para determinar se há solicitação explícita.
+🎯 ANÁLISE INTELIGENTE DA RESPOSTA DO AGENTE DE ANÁLISE:
+A resposta do Agente de Análise contém informações valiosas sobre os dados analisados:
+- Se a resposta menciona "por cidade", "por marca", "por status" → use essas colunas categóricas
+- Se a resposta menciona "quilometragem", "km", "consumo", "custo" → use essas colunas numéricas
+- Se a resposta fala de "distribuição", "proporção" → considere gráfico de pizza ou histograma
+- Se a resposta fala de "comparação", "maior", "menor" → considere gráfico de barras
+- Se a resposta fala de "tendência", "ao longo do tempo" → considere gráfico de linha
+- Se a resposta menciona "média", "total", "soma" → use essas agregações
+
+EXEMPLO DE ANÁLISE:
+Pergunta: "Mostre um gráfico de consumo por cidade"
+Resposta do Agente: "A análise mostra que São Paulo tem o maior consumo médio (12.5 L/100km), seguido por Rio de Janeiro (11.8 L/100km)..."
+→ Você deve gerar: gráfico de barras com x_column="cidade" e y_column="consumo_combustivel" (com agregação média)
 
 TIPOS DE GRÁFICOS DISPONÍVEIS:
-- bar: Para comparações entre categorias
-- pie: Para distribuições e proporções
-- line: Para tendências ao longo do tempo
-- scatter: Para correlações entre variáveis
-- histogram: Para distribuições de valores numéricos
-- box: Para análise de quartis e outliers
-- heatmap: Para matrizes de correlação
+- bar: Para comparações entre categorias (ex: consumo por cidade, custo por marca)
+- pie: Para distribuições e proporções (ex: distribuição de status, veículos por cidade)
+- line: Para tendências ao longo do tempo (ex: consumo ao longo dos anos)
+- scatter: Para correlações entre variáveis (ex: km_mes vs consumo)
+- histogram: Para distribuições de valores numéricos (ex: distribuição de velocidade)
+- box: Para análise de quartis e outliers (ex: consumo por marca)
+- heatmap: Para matrizes de correlação (ex: correlação entre todas variáveis numéricas)
+- area: Para tendências com área preenchida (similar a line, mas com área)
+- violin: Para distribuição de densidade (similar a box, mas mostra densidade)
+
+MAPEAMENTO DE TERMOS PARA COLUNAS:
+- "quilometragem", "km", "quilometragem mensal" → km_mes
+- "velocidade", "velocidade média" → velocidade_media
+- "consumo", "combustível", "combustivel" → consumo_combustivel
+- "custo", "manutenção", "manutencao" → custo_manutencao
+- "dias", "operacionais" → dias_operacionais
+- "alertas" → alertas
 
 FORMATO DE RESPOSTA:
 Você deve retornar APENAS um JSON válido:
@@ -124,12 +149,12 @@ Você deve retornar APENAS um JSON válido:
 Se o usuário SOLICITOU gráfico explicitamente:
 {
     "should_generate_chart": true,
-    "chart_type": "bar|pie|line|scatter|histogram|box|heatmap",
+    "chart_type": "bar|pie|line|scatter|histogram|box|heatmap|area|violin",
     "x_column": "nome_da_coluna_x",
     "y_column": "nome_da_coluna_y",
     "category_column": "nome_da_coluna_categoria",
-    "title": "Título do gráfico",
-    "reasoning": "Por que este gráfico é apropriado"
+    "title": "Título descritivo do gráfico baseado na resposta do agente",
+    "reasoning": "Explicação de como você usou a resposta do agente de análise para determinar este gráfico"
 }
 
 Se o usuário NÃO solicitou gráfico explicitamente:
@@ -138,7 +163,11 @@ Se o usuário NÃO solicitou gráfico explicitamente:
     "reasoning": "Usuário não solicitou gráfico explicitamente. Apenas fez uma pergunta sobre os dados."
 }
 
-Lembre-se: Seja CONSERVADOR. Só gere gráfico se houver solicitação EXPLÍCITA e CLARA."""
+⚠️ IMPORTANTE:
+- Use a RESPOSTA DO AGENTE DE ANÁLISE para extrair informações sobre colunas e métricas
+- O título do gráfico deve refletir o que foi analisado na resposta
+- Se a resposta menciona agregações (média, total, soma), considere isso ao escolher o gráfico
+- Seja preciso: use exatamente os nomes das colunas disponíveis no dataset"""
 
 
 # ============================================================================
@@ -264,19 +293,43 @@ COLUNAS DISPONÍVEIS NO DATASET:
             
             chart_messages.append({
                 "role": "user",
-                "content": f"""PERGUNTA ORIGINAL DO USUÁRIO (FOCE NESTA PARA DETERMINAR SE HÁ SOLICITAÇÃO DE GRÁFICO):
+                "content": f"""PERGUNTA ORIGINAL DO USUÁRIO (USE PARA VERIFICAR SE HÁ SOLICITAÇÃO EXPLÍCITA DE GRÁFICO):
 {user_input}
 
-RESPOSTA DO AGENTE DE ANÁLISE:
+RESPOSTA DO AGENTE DE ANÁLISE (USE ESTA PARA EXTRAIR INFORMAÇÕES SOBRE COLUNAS E DADOS):
 {text_response}
 
 {columns_info}
 
-IMPORTANTE: Analise PRINCIPALMENTE a pergunta original do usuário. 
-Só retorne should_generate_chart = true se o usuário EXPLICITAMENTE solicitou um gráfico/visualização.
-Se o usuário apenas fez uma pergunta sobre os dados, retorne should_generate_chart = false.
+INSTRUÇÕES CRÍTICAS:
+1. PRIMEIRO: Verifique na pergunta original se o usuário EXPLICITAMENTE solicitou um gráfico/visualização.
+   - Se NÃO houver solicitação explícita → retorne should_generate_chart = false
+   - Se HOUVER solicitação explícita → continue para o passo 2
 
-Retorne APENAS um JSON válido com a configuração."""
+2. SEGUNDO: Analise a RESPOSTA DO AGENTE DE ANÁLISE para extrair:
+   - Quais colunas foram mencionadas? (cidade, marca, status, km_mes, consumo_combustivel, etc.)
+   - Quais métricas foram destacadas? (média, total, soma, quantidade, etc.)
+   - Que tipo de análise foi feita? (comparação, distribuição, tendência, etc.)
+   
+3. TERCEIRO: Use essas informações da resposta para determinar:
+   - chart_type: tipo de gráfico mais apropriado baseado na análise
+   - x_column: coluna categórica mencionada na resposta (ex: cidade, marca, status)
+   - y_column: coluna numérica mencionada na resposta (ex: km_mes, consumo_combustivel, custo_manutencao)
+   - title: título descritivo que reflita o que foi analisado na resposta
+
+EXEMPLO:
+Se a resposta menciona "consumo médio por cidade" e lista valores por cidade:
+→ chart_type: "bar"
+→ x_column: "cidade"
+→ y_column: "consumo_combustivel"
+→ title: "Consumo Médio de Combustível por Cidade"
+
+Se a resposta menciona "distribuição de veículos por status":
+→ chart_type: "pie"
+→ category_column: "status"
+→ title: "Distribuição de Veículos por Status"
+
+Retorne APENAS um JSON válido com a configuração. NÃO adicione texto antes ou depois do JSON."""
             })
             
             # Gerar decisão do Agente de Gráficos
@@ -337,36 +390,102 @@ Retorne APENAS um JSON válido com a configuração."""
             import json
             import re
             
-            # Tentar extrair JSON da resposta
-            # Procurar por bloco JSON (pode ter múltiplas linhas)
-            json_pattern = r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*"should_generate_chart"[^{}]*(?:\{[^{}]*\}[^{}]*)*\}'
-            json_match = re.search(json_pattern, chart_decision, re.DOTALL)
+            # Tentar extrair JSON da resposta - múltiplas estratégias
+            config = None
             
-            if json_match:
-                json_str = json_match.group(0)
-                try:
-                    config = json.loads(json_str)
-                    
-                    if not config.get("should_generate_chart", False):
-                        logger.info("Agente de Gráficos determinou que não é necessário gerar gráfico")
-                        return config
-                    
-                    # Validar e completar configuração
-                    chart_type = config.get("chart_type", "bar")
-                    
-                    # Se não há colunas especificadas, tentar inferir da pergunta original
-                    if not config.get("x_column") and not config.get("y_column"):
-                        # Usar chart_analyzer para detectar
-                        from src.core.chart_analyzer import detect_chart_request
-                        detected = detect_chart_request(user_input)
-                        if detected:
-                            config["chart_type"] = detected.get("chart_type", chart_type)
-                            config["columns"] = detected.get("columns", [])
-                    
-                    logger.info(f"Configuração do gráfico extraída: {config}")
+            # Estratégia 1: Procurar por bloco JSON completo
+            json_patterns = [
+                r'\{[^{}]*"should_generate_chart"[^{}]*\}',  # JSON simples
+                r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*"should_generate_chart"[^{}]*(?:\{[^{}]*\}[^{}]*)*\}',  # JSON aninhado
+                r'```json\s*(\{.*?\})\s*```',  # JSON em bloco de código
+                r'```\s*(\{.*?\})\s*```',  # JSON em bloco genérico
+            ]
+            
+            for pattern in json_patterns:
+                json_match = re.search(pattern, chart_decision, re.DOTALL | re.IGNORECASE)
+                if json_match:
+                    json_str = json_match.group(1) if json_match.lastindex else json_match.group(0)
+                    try:
+                        config = json.loads(json_str)
+                        logger.info(f"JSON extraído com sucesso usando padrão: {pattern[:50]}...")
+                        break
+                    except json.JSONDecodeError:
+                        continue
+            
+            # Estratégia 2: Tentar encontrar JSON começando com {
+            if not config:
+                start_idx = chart_decision.find('{')
+                end_idx = chart_decision.rfind('}')
+                if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                    json_str = chart_decision[start_idx:end_idx+1]
+                    try:
+                        config = json.loads(json_str)
+                        logger.info("JSON extraído encontrando primeiro { e último }")
+                    except json.JSONDecodeError:
+                        pass
+            
+            if config:
+                if not config.get("should_generate_chart", False):
+                    logger.info("Agente de Gráficos determinou que não é necessário gerar gráfico")
                     return config
-                except json.JSONDecodeError as e:
-                    logger.warning(f"Erro ao fazer parse do JSON: {e}. Tentando detecção automática.")
+                
+                # Validar e completar configuração
+                chart_type = config.get("chart_type", "bar")
+                
+                # Validar colunas se DataFrame disponível
+                if df is not None:
+                    x_col = config.get("x_column")
+                    y_col = config.get("y_column")
+                    cat_col = config.get("category_column")
+                    
+                    # Verificar se as colunas existem no DataFrame
+                    available_cols = list(df.columns)
+                    
+                    if x_col and x_col not in available_cols:
+                        logger.warning(f"Coluna x_column '{x_col}' não encontrada. Tentando encontrar similar...")
+                        # Tentar encontrar coluna similar (case-insensitive)
+                        x_col_lower = x_col.lower()
+                        for col in available_cols:
+                            if col.lower() == x_col_lower or x_col_lower in col.lower():
+                                config["x_column"] = col
+                                logger.info(f"Coluna x_column corrigida: '{x_col}' -> '{col}'")
+                                break
+                        else:
+                            config["x_column"] = None
+                    
+                    if y_col and y_col not in available_cols:
+                        logger.warning(f"Coluna y_column '{y_col}' não encontrada. Tentando encontrar similar...")
+                        y_col_lower = y_col.lower()
+                        for col in available_cols:
+                            if col.lower() == y_col_lower or y_col_lower in col.lower():
+                                config["y_column"] = col
+                                logger.info(f"Coluna y_column corrigida: '{y_col}' -> '{col}'")
+                                break
+                        else:
+                            config["y_column"] = None
+                    
+                    if cat_col and cat_col not in available_cols:
+                        logger.warning(f"Coluna category_column '{cat_col}' não encontrada. Tentando encontrar similar...")
+                        cat_col_lower = cat_col.lower()
+                        for col in available_cols:
+                            if col.lower() == cat_col_lower or cat_col_lower in col.lower():
+                                config["category_column"] = col
+                                logger.info(f"Coluna category_column corrigida: '{cat_col}' -> '{col}'")
+                                break
+                        else:
+                            config["category_column"] = None
+                
+                # Se não há colunas especificadas, tentar inferir da pergunta original
+                if not config.get("x_column") and not config.get("y_column") and not config.get("category_column"):
+                    logger.info("Nenhuma coluna especificada, tentando inferir da pergunta original...")
+                    from src.core.chart_analyzer import detect_chart_request
+                    detected = detect_chart_request(user_input)
+                    if detected:
+                        config["chart_type"] = detected.get("chart_type", chart_type)
+                        config["columns"] = detected.get("columns", [])
+                
+                logger.info(f"Configuração do gráfico extraída e validada: {config}")
+                return config
             
             # Fallback: usar detecção automática (mas ser conservador)
             logger.warning("Não foi possível extrair JSON válido, usando detecção automática")
@@ -436,6 +555,7 @@ Retorne APENAS um JSON válido com a configuração."""
     ) -> Optional[Any]:
         """
         Gera um gráfico baseado na configuração do Agente de Gráficos.
+        Usa as informações extraídas da resposta do agente de análise.
         
         Args:
             df: DataFrame com os dados
@@ -445,32 +565,141 @@ Retorne APENAS um JSON válido com a configuração."""
             Objeto do gráfico ou None
         """
         try:
-            from src.core.chart_analyzer import create_smart_chart
+            from src.core.chart_generator import (
+                generate_chart_from_request,
+                create_bar_chart,
+                create_pie_chart,
+                create_histogram,
+                create_line_chart,
+                create_scatter_chart,
+                create_box_plot,
+                create_heatmap,
+                create_area_chart,
+                create_violin_plot
+            )
             
-            # Se temos colunas específicas, usar create_smart_chart com contexto
             chart_type = chart_config.get("chart_type", "bar")
+            x_column = chart_config.get("x_column")
+            y_column = chart_config.get("y_column")
+            category_column = chart_config.get("category_column")
+            title = chart_config.get("title")
             
-            # Construir uma descrição da solicitação para create_smart_chart
-            description = f"gráfico de {chart_type}"
-            if chart_config.get("x_column"):
-                description += f" com {chart_config.get('x_column')}"
-            if chart_config.get("y_column"):
-                description += f" por {chart_config.get('y_column')}"
+            logger.info(f"Gerando gráfico: tipo={chart_type}, x={x_column}, y={y_column}, category={category_column}")
             
-            # Usar create_smart_chart que já tem lógica inteligente
-            chart = create_smart_chart(df, description)
+            # Validar que as colunas existem no DataFrame
+            if x_column and x_column not in df.columns:
+                logger.warning(f"Coluna x_column '{x_column}' não encontrada. Colunas disponíveis: {list(df.columns)}")
+                # Tentar encontrar coluna similar
+                x_column = None
             
-            if chart:
-                logger.info(f"Gráfico gerado com sucesso: {chart_type}")
-                return chart
+            if y_column and y_column not in df.columns:
+                logger.warning(f"Coluna y_column '{y_column}' não encontrada. Colunas disponíveis: {list(df.columns)}")
+                # Tentar encontrar coluna similar
+                y_column = None
             
-            # Fallback: tentar gerar manualmente
-            from src.core.chart_generator import generate_chart_from_request
+            if category_column and category_column not in df.columns:
+                logger.warning(f"Coluna category_column '{category_column}' não encontrada. Colunas disponíveis: {list(df.columns)}")
+                category_column = None
             
+            # Gerar gráfico baseado no tipo e colunas especificadas
+            if chart_type == "bar" or chart_type == "barras":
+                if x_column and y_column:
+                    # Agrupar dados se necessário
+                    if x_column in df.select_dtypes(include=['object']).columns:
+                        # Agrupar por categoria e agregar
+                        df_grouped = df.groupby(x_column)[y_column].sum().reset_index()
+                        return create_bar_chart(
+                            df_grouped,
+                            x=x_column,
+                            y=y_column,
+                            title=title or f"{y_column.replace('_', ' ').title()} por {x_column.replace('_', ' ').title()}"
+                        )
+                    else:
+                        return create_bar_chart(
+                            df,
+                            x=x_column,
+                            y=y_column,
+                            title=title or f"{y_column.replace('_', ' ').title()} por {x_column.replace('_', ' ').title()}"
+                        )
+            
+            elif chart_type == "pie" or chart_type == "pizza":
+                if category_column:
+                    # Agrupar e contar
+                    df_grouped = df[category_column].value_counts().reset_index()
+                    df_grouped.columns = [category_column, "count"]
+                    return create_pie_chart(
+                        df_grouped,
+                        values="count",
+                        names=category_column,
+                        title=title or f"Distribuição por {category_column.replace('_', ' ').title()}"
+                    )
+            
+            elif chart_type == "histogram" or chart_type == "histograma":
+                if y_column:
+                    return create_histogram(
+                        df,
+                        column=y_column,
+                        title=title or f"Distribuição de {y_column.replace('_', ' ').title()}"
+                    )
+            
+            elif chart_type == "line" or chart_type == "linha":
+                if x_column and y_column:
+                    return create_line_chart(
+                        df,
+                        x=x_column,
+                        y=y_column,
+                        title=title or f"{y_column.replace('_', ' ').title()} por {x_column.replace('_', ' ').title()}"
+                    )
+            
+            elif chart_type == "scatter" or chart_type == "dispersao":
+                if x_column and y_column:
+                    return create_scatter_chart(
+                        df,
+                        x=x_column,
+                        y=y_column,
+                        title=title or f"{y_column.replace('_', ' ').title()} vs {x_column.replace('_', ' ').title()}"
+                    )
+            
+            elif chart_type == "box" or chart_type == "boxplot":
+                if y_column:
+                    return create_box_plot(
+                        df,
+                        x=x_column,
+                        y=y_column,
+                        title=title or f"Distribuição de {y_column.replace('_', ' ').title()}"
+                    )
+            
+            elif chart_type == "heatmap" or chart_type == "mapa_calor":
+                return create_heatmap(
+                    df,
+                    title=title or "Matriz de Correlação"
+                )
+            
+            elif chart_type == "area":
+                if x_column and y_column:
+                    return create_area_chart(
+                        df,
+                        x=x_column,
+                        y=y_column,
+                        title=title or f"{y_column.replace('_', ' ').title()} por {x_column.replace('_', ' ').title()}"
+                    )
+            
+            elif chart_type == "violin" or chart_type == "violino":
+                if y_column:
+                    return create_violin_plot(
+                        df,
+                        x=x_column,
+                        y=y_column,
+                        title=title or f"Distribuição de Densidade de {y_column.replace('_', ' ').title()}"
+                    )
+            
+            # Fallback: usar generate_chart_from_request
+            logger.info("Usando fallback: generate_chart_from_request")
             chart = generate_chart_from_request(
                 df,
                 chart_type,
-                **{k: v for k, v in chart_config.items() if k not in ["should_generate_chart", "chart_type", "reasoning"]}
+                **{k: v for k, v in chart_config.items() 
+                   if k not in ["should_generate_chart", "chart_type", "reasoning"] and v is not None}
             )
             
             return chart

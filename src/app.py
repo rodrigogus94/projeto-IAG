@@ -433,6 +433,9 @@ def process_user_message(user_input):
     # Adicionar mensagem do usuário no histórico
     st.session_state.messages.append({"role": "user", "content": user_input})
     
+    # Definir flag de pensando como True
+    st.session_state.is_thinking = True
+    
     # Criar placeholder para mostrar indicador de pensando
     thinking_placeholder = st.empty()
     
@@ -627,6 +630,9 @@ Pergunta do usuário: {user_input}"""
         # Limpar indicador de pensando
         thinking_placeholder.empty()
         
+        # Definir flag de pensando como False
+        st.session_state.is_thinking = False
+        
         # Desabilitar efeito de digitação temporariamente para garantir que a resposta sempre apareça
         # A resposta será exibida diretamente do histórico de mensagens
         st.session_state.typing_response = None
@@ -637,6 +643,8 @@ Pergunta do usuário: {user_input}"""
         full_response = error_msg
         # Limpar indicador de pensando em caso de erro
         thinking_placeholder.empty()
+        # Definir flag de pensando como False em caso de erro
+        st.session_state.is_thinking = False
         # Em caso de erro, exibir diretamente do histórico de mensagens
         st.session_state.typing_response = None
         st.session_state.show_typing = False
@@ -932,6 +940,39 @@ st.markdown(
 .chat-input-wrapper.has-text button[data-testid="baseButton-secondary"] {
     opacity: 1 !important;
     pointer-events: all !important;
+}
+
+/* Posicionar balão "Pensando" no topo */
+.thinking-above-prompt {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.3rem !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+}
+
+/* Banner fixo no topo */
+.thinking-top-banner {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 999 !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    padding: 1rem 0 !important;
+    margin: -1rem 0 1rem 0 !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Ajuste para tema escuro */
+[data-theme="dark"] .thinking-top-banner {
+    background: rgba(0, 0, 0, 0.95) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Garantir que elementos antes do chat input apareçam acima */
+[data-testid="stChatInput"] {
+    position: relative !important;
 }
 </style>
 """,
@@ -1267,6 +1308,17 @@ responseObserver.observe(document.body, {
 // Executar também após delays para garantir que tudo foi renderizado
 setTimeout(scrollToResponse, 500);
 setTimeout(scrollToResponse, 1000);
+
+// Função removida - o balão agora é renderizado diretamente no topo pelo Streamlit
+
+// Executar quando a página carregar
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', positionThinkingBalloon);
+} else {
+    positionThinkingBalloon();
+}
+
+// Observador removido - não é mais necessário
 </script>
 """,
     unsafe_allow_html=True,
@@ -1328,6 +1380,14 @@ with st.sidebar:
         """,
         unsafe_allow_html=True,
     )
+    
+    # Mostrar balão "Pensando" no topo da sidebar se estiver pensando
+    if st.session_state.is_thinking:
+        with st.container():
+            st.markdown(
+                '<div class="thinking-top-banner"><div class="thinking-above-prompt">💭 Pensando<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span></div></div>',
+                unsafe_allow_html=True,
+            )
 
     # Mensagem de boas-vindas
     st.markdown(
@@ -1364,13 +1424,6 @@ with st.sidebar:
             )
 
     st.markdown("<br>", unsafe_allow_html=True)
-
-    # Mostrar indicador de pensando acima do prompt se estiver pensando
-    if st.session_state.is_thinking:
-        st.markdown(
-            '<div class="thinking-above-prompt">Pensando<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span></div>',
-            unsafe_allow_html=True,
-        )
 
     # Container integrado para prompt e microfone - SIMPLIFICADO
     if not st.session_state.prompt_in_center:
@@ -1826,6 +1879,14 @@ if "user_input" in locals() and user_input:
     process_user_message(user_input)
 
 # ========== ÁREA PRINCIPAL - DASHBOARD ==========
+# Mostrar balão "Pensando" no topo da área principal se estiver pensando
+if st.session_state.is_thinking:
+    with st.container():
+        st.markdown(
+            '<div class="thinking-top-banner" style="text-align: center;"><div class="thinking-above-prompt">💭 Pensando<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span></div></div>',
+            unsafe_allow_html=True,
+        )
+
 # Área principal para exibir conteúdo/dashboards
 main_area = st.container()
 
@@ -2001,13 +2062,6 @@ with main_area:
 
     # Prompt e gravador sempre no centro, abaixo da tela
     st.markdown("<br><br>", unsafe_allow_html=True)  # Espaço antes do prompt
-
-    # Mostrar indicador de pensando acima do prompt se estiver pensando
-    if st.session_state.is_thinking:
-        st.markdown(
-            '<div class="thinking-above-prompt">Pensando<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span></div>',
-            unsafe_allow_html=True,
-        )
 
     # Input de mensagem usando chat_input no centro
     center_user_input = st.chat_input(
