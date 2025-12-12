@@ -398,23 +398,32 @@ Pergunta do usuário: {user_input}"""
 
 def initialize_session_state():
     """Inicializa todas as variáveis do session_state com valores padrão."""
+    # Definir provedor padrão como OpenAI
+    default_provider = "openai"
+    default_model = OPENAI_DEFAULT_MODEL if default_provider == "openai" else OLLAMA_DEFAULT_MODEL
+    default_transcription = "openai"  # Sempre OpenAI como padrão
+    
     defaults = {
         "messages": [],
         "llm_handler": None,
-        "selected_model": DEFAULT_MODEL,
-        "previous_model": DEFAULT_MODEL,
+        "selected_model": default_model,
+        "previous_model": default_model,
         "temperature": DEFAULT_TEMPERATURE,
         "prompt_in_center": True,
         "audio_transcribed": None,
         "is_thinking": False,
         "ollama_url": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
-        "llm_provider": "ollama",
-        "transcription_method": os.getenv("TRANSCRIPTION_METHOD", "whisper"),
+        "llm_provider": default_provider,  # OpenAI como padrão
+        "transcription_method": os.getenv("TRANSCRIPTION_METHOD", default_transcription),  # OpenAI como padrão
     }
     
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
+    
+    # SEMPRE forçar OpenAI como método de transcrição padrão
+    # Isso garante que mesmo se houver valor antigo, será atualizado
+    st.session_state["transcription_method"] = "openai"
 
 
 def initialize_llm_handler():
@@ -872,9 +881,11 @@ setTimeout(() => {
 
 # Importar configurações do modelo
 try:
-    from src.config.model_config import DEFAULT_MODEL, DEFAULT_TEMPERATURE
+    from src.config.model_config import DEFAULT_MODEL as OLLAMA_DEFAULT_MODEL, DEFAULT_TEMPERATURE
+    from src.config.openai_model_config import DEFAULT_MODEL as OPENAI_DEFAULT_MODEL
 except ImportError:
-    DEFAULT_MODEL = "llama2:latest"
+    OLLAMA_DEFAULT_MODEL = "llama2:latest"
+    OPENAI_DEFAULT_MODEL = "gpt-3.5-turbo"
     DEFAULT_TEMPERATURE = 0.7
 
 # Inicialização do session_state
@@ -978,28 +989,45 @@ with st.sidebar:
             "🎙️", key="sidebar_audio", help="Clique para gravar uma mensagem de voz"
         )
 
-        # Processar áudio se fornecido
+        # Processar áudio se fornecido (apenas uma vez)
         if audio_file:
-            st.audio(audio_file, format="audio/wav")
-            with st.spinner("Transcrevendo áudio..."):
-                try:
-                    transcribed_text = process_audio_file(audio_file, st.session_state.transcription_method)
-                    if transcribed_text:
-                        st.session_state.audio_transcribed = transcribed_text
-                        st.success(f"✅ Transcrição: **{transcribed_text}**")
-                except Exception as e:
-                    error_msg = str(e)
-                    # Remover prefixo "Erro ao transcrever áudio: " se presente para evitar duplicação
-                    if error_msg.startswith("Erro ao transcrever áudio: "):
-                        error_msg = error_msg.replace("Erro ao transcrever áudio: ", "")
-                    st.error(f"❌ {error_msg}")
-                    logger.error(f"Erro ao processar áudio: {error_msg}", exc_info=True)
-
-            if st.session_state.audio_transcribed:
-                # Se houver transcrição, usar como input
-                if not user_input:
-                    user_input = st.session_state.audio_transcribed
-                    st.session_state.audio_transcribed = None  # Limpar após usar
+            # Verificar se este áudio já foi processado para evitar loops
+            import time
+            audio_key = "sidebar_audio_processed"
+            
+            # Usar hash do conteúdo do áudio para identificar unicamente
+            try:
+                audio_hash = hash(audio_file.read())
+                audio_file.seek(0)  # Resetar posição do arquivo
+            except:
+                audio_hash = time.time()
+            
+            last_hash = st.session_state.get(f"{audio_key}_hash", None)
+            
+            if last_hash != audio_hash:
+                # Marcar como processado
+                st.session_state[f"{audio_key}_hash"] = audio_hash
+                st.audio(audio_file, format="audio/wav")
+                with st.spinner("Transcrevendo áudio..."):
+                    try:
+                        transcribed_text = process_audio_file(audio_file, st.session_state.transcription_method)
+                        if transcribed_text:
+                            # Processar imediatamente para evitar loop
+                            user_input = transcribed_text
+                            st.success(f"✅ Transcrição: **{transcribed_text}**")
+                            # Processar mensagem imediatamente e fazer rerun
+                            if user_input:
+                                process_user_message(user_input)
+                    except Exception as e:
+                        error_msg = str(e)
+                        # Remover prefixo "Erro ao transcrever áudio: " se presente para evitar duplicação
+                        if error_msg.startswith("Erro ao transcrever áudio: "):
+                            error_msg = error_msg.replace("Erro ao transcrever áudio: ", "")
+                        st.error(f"❌ {error_msg}")
+                        logger.error(f"Erro ao processar áudio: {error_msg}", exc_info=True)
+                        # Limpar flag em caso de erro para permitir nova tentativa
+                        if f"{audio_key}_hash" in st.session_state:
+                            del st.session_state[f"{audio_key}_hash"]
 
     else:
         # Placeholder para manter estrutura quando prompt está no centro
@@ -1011,11 +1039,20 @@ with st.sidebar:
     with st.expander("⚙️ Configurações"):
         # Seleção de provedor LLM
         st.markdown("### 🤖 Provedor de IA")
+        # Garantir que o valor padrão seja "openai" se não estiver definido ou for inválido
+        if "llm_provider" not in st.session_state or st.session_state.llm_provider not in ["openai", "ollama"]:
+            st.session_state.llm_provider = "openai"
+        
+        # Calcular índice baseado no valor atual
+        provider_options = ["openai", "ollama"]
+        current_provider = st.session_state.llm_provider
+        provider_index = provider_options.index(current_provider) if current_provider in provider_options else 0
+        
         llm_provider = st.selectbox(
             "Escolha o provedor de IA",
-            ["ollama", "openai"],
-            index=0 if st.session_state.llm_provider == "ollama" else 1,
-            help="Ollama: modelos locais. OpenAI: modelos da OpenAI (requer API key)",
+            provider_options,  # OpenAI primeiro (padrão)
+            index=provider_index,
+            help="OpenAI: modelos da OpenAI (requer API key). Ollama: modelos locais",
         )
 
         if llm_provider != st.session_state.llm_provider:
@@ -1225,12 +1262,31 @@ with st.sidebar:
 
         # Configuração de transcrição de áudio
         st.markdown("### 🎙️ Transcrição de Áudio")
+        
+        # SEMPRE forçar OpenAI como padrão (sobrescrever qualquer valor antigo)
+        # Se o valor atual for whisper, forçar mudança para openai
+        if st.session_state.get("transcription_method") == "whisper" and "transcription_forced_to_openai" not in st.session_state:
+            st.session_state.transcription_method = "openai"
+            st.session_state["transcription_forced_to_openai"] = True
+            st.rerun()
+        
+        # Garantir que seja openai se não estiver definido
+        if "transcription_method" not in st.session_state or st.session_state.transcription_method not in ["openai", "whisper"]:
+            st.session_state.transcription_method = "openai"
+        
+        # Calcular índice baseado no valor atual
+        transcription_options = ["openai", "whisper"]  # OpenAI sempre primeiro
+        current_method = st.session_state.transcription_method
+        transcription_index = 0 if current_method == "openai" else 1
+        
         transcription_method = st.selectbox(
             "Método de transcrição",
-            ["whisper", "openai"],
-            index=0 if st.session_state.transcription_method == "whisper" else 1,
-            help="Whisper: local (requer openai-whisper). OpenAI: API (requer OPENAI_API_KEY)",
+            transcription_options,
+            index=transcription_index,
+            help="OpenAI: API (requer OPENAI_API_KEY). Whisper: local (requer openai-whisper)",
         )
+        
+        # Atualizar o valor no session_state
         st.session_state.transcription_method = transcription_method
 
         if transcription_method == "openai":
@@ -1261,6 +1317,19 @@ with st.sidebar:
             st.session_state.theme = theme
             st.rerun()
 
+        # Botão resetar configurações para padrão
+        if st.button("🔄 Resetar para Padrão (OpenAI)", width='stretch'):
+            st.session_state.llm_provider = "openai"
+            st.session_state.transcription_method = "openai"  # Forçar OpenAI
+            st.session_state.selected_model = OPENAI_DEFAULT_MODEL
+            st.session_state.llm_handler = None
+            # Limpar flags de áudio processado
+            for key in list(st.session_state.keys()):
+                if "audio_processed" in key or "audio_hash" in key:
+                    del st.session_state[key]
+            st.success("✅ Configurações resetadas para OpenAI!")
+            st.rerun()
+        
         # Botão limpar chat
         if st.button("🗑️ Limpar Chat", width='stretch'):
             st.session_state.messages = []
@@ -1494,28 +1563,45 @@ with main_area:
         "🎙️", key="center_audio", help="Clique para gravar uma mensagem de voz"
     )
 
-    # Processar áudio se fornecido
+    # Processar áudio se fornecido (apenas uma vez)
     if center_audio_file:
-        st.audio(center_audio_file, format="audio/wav")
-        with st.spinner("Transcrevendo áudio..."):
-            try:
-                transcribed_text = process_audio_file(center_audio_file, st.session_state.transcription_method)
-                if transcribed_text:
-                    st.session_state.audio_transcribed = transcribed_text
-                    st.success(f"✅ Transcrição: **{transcribed_text}**")
-            except Exception as e:
-                error_msg = str(e)
-                # Remover prefixo "Erro ao transcrever áudio: " se presente para evitar duplicação
-                if error_msg.startswith("Erro ao transcrever áudio: "):
-                    error_msg = error_msg.replace("Erro ao transcrever áudio: ", "")
-                st.error(f"❌ {error_msg}")
-                logger.error(f"Erro ao processar áudio: {error_msg}", exc_info=True)
-
-        if st.session_state.audio_transcribed:
-            # Se houver transcrição, usar como input
-            if not center_user_input:
-                center_user_input = st.session_state.audio_transcribed
-                st.session_state.audio_transcribed = None  # Limpar após usar
+        # Verificar se este áudio já foi processado para evitar loops
+        import time
+        audio_key = "center_audio_processed"
+        
+        # Usar hash do conteúdo do áudio para identificar unicamente
+        try:
+            audio_hash = hash(center_audio_file.read())
+            center_audio_file.seek(0)  # Resetar posição do arquivo
+        except:
+            audio_hash = time.time()
+        
+        last_hash = st.session_state.get(f"{audio_key}_hash", None)
+        
+        if last_hash != audio_hash:
+            # Marcar como processado
+            st.session_state[f"{audio_key}_hash"] = audio_hash
+            st.audio(center_audio_file, format="audio/wav")
+            with st.spinner("Transcrevendo áudio..."):
+                try:
+                    transcribed_text = process_audio_file(center_audio_file, st.session_state.transcription_method)
+                    if transcribed_text:
+                        # Processar imediatamente para evitar loop
+                        center_user_input = transcribed_text
+                        st.success(f"✅ Transcrição: **{transcribed_text}**")
+                        # Processar mensagem imediatamente e fazer rerun
+                        if center_user_input:
+                            process_user_message(center_user_input)
+                except Exception as e:
+                    error_msg = str(e)
+                    # Remover prefixo "Erro ao transcrever áudio: " se presente para evitar duplicação
+                    if error_msg.startswith("Erro ao transcrever áudio: "):
+                        error_msg = error_msg.replace("Erro ao transcrever áudio: ", "")
+                    st.error(f"❌ {error_msg}")
+                    logger.error(f"Erro ao processar áudio: {error_msg}", exc_info=True)
+                    # Limpar flag em caso de erro para permitir nova tentativa
+                    if f"{audio_key}_hash" in st.session_state:
+                        del st.session_state[f"{audio_key}_hash"]
 
     # Processar mensagem quando enviada do centro
     if center_user_input:
