@@ -140,18 +140,29 @@ class OpenAILLMHandler:
 
             # Extrair a resposta do formato da OpenAI
             if isinstance(response, dict):
+                # Tentar extrair conteúdo de diferentes formas
                 message = response.get("message", {})
-                content = message.get("content", "")
-                if content:
+                content = ""
+                
+                if isinstance(message, dict):
+                    content = message.get("content", "")
+                elif isinstance(message, str):
+                    content = message
+                
+                # Fallback: tentar extrair diretamente do response
+                if not content:
+                    content = response.get("content", "")
+                
+                if content and len(str(content).strip()) > 0:
                     logger.info(f"Resposta gerada: {len(content)} caracteres")
-                    return content
+                    return str(content)
                 else:
-                    logger.warning("Resposta vazia do modelo")
+                    logger.warning(f"Resposta vazia do modelo. Response structure: {list(response.keys())}")
                     return SYSTEM_MESSAGES.get(
                         "no_response", "Erro: Resposta vazia do modelo."
                     )
             else:
-                logger.error(f"Formato de resposta inesperado: {type(response)}")
+                logger.error(f"Formato de resposta inesperado: {type(response)} - {response}")
                 return SYSTEM_MESSAGES.get(
                     "error", "Erro: Formato de resposta inesperado."
                 )

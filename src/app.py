@@ -515,6 +515,12 @@ def process_user_message(user_input):
             )
             
             full_response = result.get("text_response", "")
+            
+            # Validar resposta do orquestrador
+            if not full_response or (isinstance(full_response, str) and len(full_response.strip()) == 0):
+                full_response = "Desculpe, não consegui gerar uma resposta. Por favor, tente novamente."
+                logger.warning("Resposta vazia recebida do orquestrador")
+            
             chart_to_display = result.get("chart", None)
             
             # Armazenar gráfico no session_state para exibição posterior
@@ -605,6 +611,12 @@ Pergunta do usuário: {user_input}"""
             )
             
             full_response = response
+            
+            # Validar que a resposta não está vazia
+            if not full_response or (isinstance(full_response, str) and len(full_response.strip()) == 0):
+                full_response = "Desculpe, não consegui gerar uma resposta. Por favor, tente novamente."
+                logger.warning("Resposta vazia recebida do modelo")
+            
             logger.info(f"Resposta gerada: {len(full_response)} caracteres")
             
             # Adicionar delay adicional baseado no tamanho da resposta (simular processamento)
@@ -615,20 +627,31 @@ Pergunta do usuário: {user_input}"""
         # Limpar indicador de pensando
         thinking_placeholder.empty()
         
-        # Armazenar resposta para exibir com efeito de digitação
-        st.session_state.typing_response = full_response
-        st.session_state.show_typing = True
+        # Desabilitar efeito de digitação temporariamente para garantir que a resposta sempre apareça
+        # A resposta será exibida diretamente do histórico de mensagens
+        st.session_state.typing_response = None
+        st.session_state.show_typing = False
     except Exception as e:
         error_msg = f"Erro ao gerar resposta: {str(e)}"
         logger.error(error_msg, exc_info=True)
         full_response = error_msg
         # Limpar indicador de pensando em caso de erro
         thinking_placeholder.empty()
-        st.session_state.typing_response = error_msg
-        st.session_state.show_typing = True
+        # Em caso de erro, exibir diretamente do histórico de mensagens
+        st.session_state.typing_response = None
+        st.session_state.show_typing = False
     
-    # Salvar no histórico
-    st.session_state.messages.append({"role": "assistant", "content": full_response})
+    # Salvar no histórico - garantir que a resposta seja válida
+    # Converter para string e validar
+    response_content = str(full_response) if full_response else ""
+    
+    if response_content and len(response_content.strip()) > 0:
+        st.session_state.messages.append({"role": "assistant", "content": response_content})
+        logger.info(f"Resposta salva no histórico: {len(response_content)} caracteres")
+    else:
+        error_msg = "Erro: Resposta vazia ou inválida do modelo. Por favor, tente novamente."
+        st.session_state.messages.append({"role": "assistant", "content": error_msg})
+        logger.error(f"Resposta vazia detectada. full_response tipo: {type(full_response)}, valor: {full_response}")
     
     # Salvar histórico automaticamente
     if HISTORY_AVAILABLE:
@@ -1862,7 +1885,24 @@ with main_area:
                         last_user_question = content
                     break
             
-            last_response = st.session_state.messages[-1]["content"]
+            # Obter resposta - priorizar mensagens do histórico primeiro
+            last_response = ""
+            
+            # Primeiro, tentar obter da última mensagem do assistente
+            if st.session_state.messages and len(st.session_state.messages) > 0:
+                last_message = st.session_state.messages[-1]
+                if last_message.get("role") == "assistant":
+                    last_response = last_message.get("content", "") or ""
+            
+            # Se não encontrou, tentar do typing_response
+            if not last_response or len(str(last_response).strip()) == 0:
+                if hasattr(st.session_state, 'typing_response') and st.session_state.get('typing_response'):
+                    last_response = str(st.session_state.typing_response)
+            
+            # Garantir que temos uma resposta válida
+            if not last_response or (isinstance(last_response, str) and len(last_response.strip()) == 0):
+                last_response = "Aguardando resposta do modelo..."
+                logger.warning(f"Nenhuma resposta encontrada. Messages: {len(st.session_state.messages)}, typing_response: {hasattr(st.session_state, 'typing_response')}")
 
             # Exibir pergunta do usuário no topo
             if last_user_question:
@@ -1894,20 +1934,23 @@ with main_area:
             
             st.markdown("---")
 
-            # Verificar se deve exibir com efeito de digitação
-            show_typing = hasattr(st.session_state, 'show_typing') and st.session_state.show_typing
-            typing_text = st.session_state.get('typing_response', last_response) if show_typing else None
+            # SEMPRE exibir a resposta normalmente (efeito de digitação desabilitado temporariamente)
+            # Isso garante que a resposta sempre apareça
+            response_text = last_response
             
-            # Exibir resposta formatada
+            # Validar se a resposta não está vazia
+            if not response_text or (isinstance(response_text, str) and len(response_text.strip()) == 0):
+                response_text = "Erro: Resposta vazia do modelo. Por favor, tente novamente."
+                logger.warning(f"Resposta vazia detectada. last_response: '{last_response}', tipo: {type(last_response)}")
+            
+            # Log para debug
+            logger.info(f"Exibindo resposta: {len(str(response_text))} caracteres")
+            
+            # Exibir resposta formatada - SEMPRE usar markdown normal para garantir visibilidade
             response_container = st.container()
             with response_container:
-                if show_typing and typing_text:
-                    # Exibir com efeito de digitação
-                    typing_placeholder = st.empty()
-                    _display_typing_effect(typing_placeholder, typing_text, response_id)
-                else:
-                    # Exibir resposta completa normalmente
-                    st.markdown(last_response)
+                # Exibir resposta completa diretamente (sem efeito de digitação por enquanto)
+                st.markdown(response_text)
 
                 # Botões de ação - apenas ícones
                 col1, col2, col3 = st.columns(3)
@@ -1948,27 +1991,13 @@ with main_area:
             # GERAR GRÁFICO AUTOMATICAMENTE (FORA do response_container)
             # Forçar atualização do gráfico sempre que houver nova resposta
             # Isso funciona tanto para modo tradicional quanto para orquestrador
-            # Só renderizar gráfico após a digitação terminar
-            if not show_typing:
-                render_chart_if_requested()
+            render_chart_if_requested()
         else:
             # Mesmo se não houver resposta do assistente ainda, verificar se há solicitação de gráfico
             # Isso garante que gráficos sejam exibidos mesmo em casos especiais
             render_chart_if_requested()
         
-        # Limpar flag de digitação após o tempo estimado
-        import time
-        if hasattr(st.session_state, 'typing_cleanup_time'):
-            if time.time() >= st.session_state.typing_cleanup_time:
-                if hasattr(st.session_state, 'show_typing'):
-                    st.session_state.show_typing = False
-                if hasattr(st.session_state, 'typing_response'):
-                    del st.session_state.typing_response
-                if hasattr(st.session_state, 'typing_cleanup_time'):
-                    del st.session_state.typing_cleanup_time
-                # Renderizar gráfico após digitação terminar
-                render_chart_if_requested()
-                st.rerun()
+        # Código de cleanup removido - não precisamos mais pois não usamos efeito de digitação
 
     # Prompt e gravador sempre no centro, abaixo da tela
     st.markdown("<br><br>", unsafe_allow_html=True)  # Espaço antes do prompt
