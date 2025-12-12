@@ -247,6 +247,14 @@ def _generate_dark_theme_css(colors: dict) -> str:
         font-size: 0.95rem;
     }}
     
+    /* Caixa de pergunta do usuário */
+    .user-question-box {{
+        background-color: {colors['user_message_bg']} !important;
+        color: {colors['text_primary']} !important;
+        border-left: 4px solid {colors['accent']} !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    }}
+    
     /* Mensagem de boas-vindas */
     .welcome-message {{
         background: linear-gradient(135deg, {colors['bg_tertiary']} 0%, {colors['bg_secondary']} 100%) !important;
@@ -390,15 +398,49 @@ def _generate_dark_theme_css(colors: dict) -> str:
     /* Indicador de pensando */
     .thinking-above-prompt {{
         background: linear-gradient(90deg, {colors['accent']}33 0%, {colors['accent_hover']}33 100%) !important;
-        color: {colors['accent_light']} !important;
+        color: {colors['accent']} !important;
         border-radius: 8px !important;
         padding: 0.75rem 1rem !important;
-        animation: pulse 2s ease-in-out infinite !important;
+        font-weight: 500 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.3rem !important;
     }}
     
-    @keyframes pulse {{
-        0%, 100% {{ opacity: 1; }}
-        50% {{ opacity: 0.7; }}
+    /* Animação dos três pontinhos */
+    .thinking-dots {{
+        display: inline-flex !important;
+        gap: 0.2rem !important;
+    }}
+    
+    .thinking-dots span {{
+        display: inline-block !important;
+        animation: dot-bounce 1.4s ease-in-out infinite both !important;
+        font-size: 1.2rem !important;
+        line-height: 1 !important;
+    }}
+    
+    .thinking-dots span:nth-child(1) {{
+        animation-delay: -0.32s !important;
+    }}
+    
+    .thinking-dots span:nth-child(2) {{
+        animation-delay: -0.16s !important;
+    }}
+    
+    .thinking-dots span:nth-child(3) {{
+        animation-delay: 0s !important;
+    }}
+    
+    @keyframes dot-bounce {{
+        0%, 80%, 100% {{
+            transform: scale(0);
+            opacity: 0.5;
+        }}
+        40% {{
+            transform: scale(1);
+            opacity: 1;
+        }}
     }}
     
     /* Chat input */
@@ -772,12 +814,46 @@ def _generate_light_theme_css(colors: dict) -> str:
         color: {colors['accent']} !important;
         border-radius: 8px !important;
         padding: 0.75rem 1rem !important;
-        animation: pulse 2s ease-in-out infinite !important;
+        font-weight: 500 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.3rem !important;
     }}
     
-    @keyframes pulse {{
-        0%, 100% {{ opacity: 1; }}
-        50% {{ opacity: 0.7; }}
+    /* Animação dos três pontinhos */
+    .thinking-dots {{
+        display: inline-flex !important;
+        gap: 0.2rem !important;
+    }}
+    
+    .thinking-dots span {{
+        display: inline-block !important;
+        animation: dot-bounce 1.4s ease-in-out infinite both !important;
+        font-size: 1.2rem !important;
+        line-height: 1 !important;
+    }}
+    
+    .thinking-dots span:nth-child(1) {{
+        animation-delay: -0.32s !important;
+    }}
+    
+    .thinking-dots span:nth-child(2) {{
+        animation-delay: -0.16s !important;
+    }}
+    
+    .thinking-dots span:nth-child(3) {{
+        animation-delay: 0s !important;
+    }}
+    
+    @keyframes dot-bounce {{
+        0%, 80%, 100% {{
+            transform: scale(0);
+            opacity: 0.5;
+        }}
+        40% {{
+            transform: scale(1);
+            opacity: 1;
+        }}
     }}
     
     /* Scrollbar */

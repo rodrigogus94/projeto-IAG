@@ -281,42 +281,46 @@ def process_user_message(user_input):
     # Adicionar mensagem do usuário no histórico
     st.session_state.messages.append({"role": "user", "content": user_input})
     
-    # Exibir imediatamente a mensagem do usuário
-    with st.chat_message("user"):
-        st.markdown(user_input)
+    # Criar placeholder para mostrar indicador de pensando
+    thinking_placeholder = st.empty()
     
-    # Gerar resposta
-    with st.chat_message("assistant"):
-        placeholder = st.empty()
-        full_response = ""
+    # Mostrar indicador de pensando imediatamente
+    with thinking_placeholder.container():
+        st.markdown(
+            '<div class="thinking-above-prompt" style="margin: 1.5rem 0;">Pensando<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span></div>',
+            unsafe_allow_html=True,
+        )
+    
+    # Gerar resposta (sem exibir mensagens do chat na área principal)
+    full_response = ""
+    
+    try:
+        # Preparar contexto dos dados se disponível
+        messages_to_send = st.session_state.messages.copy()
         
-        try:
-            # Preparar contexto dos dados se disponível
-            messages_to_send = st.session_state.messages.copy()
+        # Adicionar contexto inteligente dos dados quando disponível
+        if st.session_state.veiculos_df is not None:
+            df = st.session_state.veiculos_df
             
-            # Adicionar contexto inteligente dos dados quando disponível
-            if st.session_state.veiculos_df is not None:
-                df = st.session_state.veiculos_df
-                
-                # Gerar contexto inteligente e rico dos dados
-                if DATA_AVAILABLE:
-                    try:
-                        intelligent_context = get_intelligent_data_context(df)
-                    except Exception as e:
-                        logger.warning(f"Erro ao gerar contexto inteligente: {e}")
-                        intelligent_context = f"Total: {len(df)} veículos | Colunas: {', '.join(df.columns.tolist())}"
-                else:
+            # Gerar contexto inteligente e rico dos dados
+            if DATA_AVAILABLE:
+                try:
+                    intelligent_context = get_intelligent_data_context(df)
+                except Exception as e:
+                    logger.warning(f"Erro ao gerar contexto inteligente: {e}")
                     intelligent_context = f"Total: {len(df)} veículos | Colunas: {', '.join(df.columns.tolist())}"
-                
-                # Adicionar contexto na primeira mensagem ou se for uma nova pergunta sobre dados
-                is_data_question = any(word in user_input.lower() for word in [
-                    'dados', 'veículo', 'veiculo', 'frota', 'gráfico', 'grafico', 
-                    'análise', 'analise', 'estatística', 'estatistica', 'status',
-                    'cidade', 'consumo', 'custo', 'alerta', 'quilometragem', 'km'
-                ])
-                
-                if len(messages_to_send) == 1 or is_data_question:
-                    data_context = f"""📊 CONTEXTO COMPLETO DOS DADOS DISPONÍVEIS:
+            else:
+                intelligent_context = f"Total: {len(df)} veículos | Colunas: {', '.join(df.columns.tolist())}"
+            
+            # Adicionar contexto na primeira mensagem ou se for uma nova pergunta sobre dados
+            is_data_question = any(word in user_input.lower() for word in [
+                'dados', 'veículo', 'veiculo', 'frota', 'gráfico', 'grafico', 
+                'análise', 'analise', 'estatística', 'estatistica', 'status',
+                'cidade', 'consumo', 'custo', 'alerta', 'quilometragem', 'km'
+            ])
+            
+            if len(messages_to_send) == 1 or is_data_question:
+                data_context = f"""📊 CONTEXTO COMPLETO DOS DADOS DISPONÍVEIS:
 
 {intelligent_context}
 
@@ -330,40 +334,53 @@ def process_user_message(user_input):
 - Identifique padrões, tendências e anomalias nos dados
 
 Pergunta do usuário: {user_input}"""
-                    
-                    if len(messages_to_send) == 1:
-                        messages_to_send[0] = {"role": "user", "content": data_context}
-                    else:
-                        # Adicionar contexto antes da última mensagem
-                        messages_to_send[-1]["content"] = data_context
-            
-            # SEMPRE verificar se é pedido de gráfico e reforçar a instrução
-            user_input_lower = user_input.lower()
-            if any(palavra in user_input_lower for palavra in ['gráfico', 'grafico', 'chart', 'visualização', 'visualizacao', 'plot']):
-                # Modificar a última mensagem do usuário para incluir a instrução
-                ultima_msg = messages_to_send[-1]["content"]
-                messages_to_send[-1]["content"] = f"""🚨 IMPORTANTE: O sistema JÁ gera o gráfico automaticamente. NÃO forneça código. Apenas analise os dados.
+                
+                if len(messages_to_send) == 1:
+                    messages_to_send[0] = {"role": "user", "content": data_context}
+                else:
+                    # Adicionar contexto antes da última mensagem
+                    messages_to_send[-1]["content"] = data_context
+        
+        # SEMPRE verificar se é pedido de gráfico e reforçar a instrução
+        user_input_lower = user_input.lower()
+        if any(palavra in user_input_lower for palavra in ['gráfico', 'grafico', 'chart', 'visualização', 'visualizacao', 'plot']):
+            # Modificar a última mensagem do usuário para incluir a instrução
+            ultima_msg = messages_to_send[-1]["content"]
+            messages_to_send[-1]["content"] = f"""🚨 IMPORTANTE: O sistema JÁ gera o gráfico automaticamente. NÃO forneça código. Apenas analise os dados.
 
     {ultima_msg}
 
     Responda APENAS com análise dos dados (números, percentuais, insights). O gráfico aparece sozinho."""
-            
-            # Gerar resposta
-            response = st.session_state.llm_handler.generate_response(
-                messages=messages_to_send,
-                model=st.session_state.selected_model,
-                temperature=st.session_state.temperature,
-                stream=False,
-            )
-            
-            placeholder.markdown(response)
-            full_response = response
-            logger.info(f"Resposta gerada: {len(full_response)} caracteres")
-        except Exception as e:
-            error_msg = f"Erro ao gerar resposta: {str(e)}"
-            placeholder.error(error_msg)
-            logger.error(error_msg, exc_info=True)
-            full_response = error_msg
+        
+        # Adicionar delay mínimo para parecer mais humanizado (1-2 segundos)
+        import time
+        min_delay = 1.5  # Delay mínimo em segundos
+        time.sleep(min_delay)
+        
+        # Gerar resposta
+        response = st.session_state.llm_handler.generate_response(
+            messages=messages_to_send,
+            model=st.session_state.selected_model,
+            temperature=st.session_state.temperature,
+            stream=False,
+        )
+        
+        full_response = response
+        logger.info(f"Resposta gerada: {len(full_response)} caracteres")
+        
+        # Adicionar delay adicional baseado no tamanho da resposta (simular processamento)
+        # Delay adicional: 0.5-2 segundos baseado no tamanho
+        additional_delay = min(2.0, max(0.5, len(full_response) / 500))
+        time.sleep(additional_delay)
+        
+        # Limpar indicador de pensando
+        thinking_placeholder.empty()
+    except Exception as e:
+        error_msg = f"Erro ao gerar resposta: {str(e)}"
+        logger.error(error_msg, exc_info=True)
+        full_response = error_msg
+        # Limpar indicador de pensando em caso de erro
+        thinking_placeholder.empty()
     
     # Salvar no histórico
     st.session_state.messages.append({"role": "assistant", "content": full_response})
@@ -375,7 +392,7 @@ Pergunta do usuário: {user_input}"""
         except Exception as e:
             logger.warning(f"Erro ao salvar histórico: {e}")
     
-    # Recarregar para atualizar a interface
+    # Recarregar para atualizar a interface (já com is_thinking = False)
     st.rerun()
 
 
@@ -946,7 +963,7 @@ with st.sidebar:
     # Mostrar indicador de pensando acima do prompt se estiver pensando
     if st.session_state.is_thinking:
         st.markdown(
-            '<div class="thinking-above-prompt">💭 <em>Pensando...</em></div>',
+            '<div class="thinking-above-prompt">Pensando<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span></div>',
             unsafe_allow_html=True,
         )
 
@@ -1362,13 +1379,43 @@ with main_area:
         )
     else:
         # Exibir conteúdo das respostas
-        # Se a última mensagem for do assistente, mostrar em destaque
+        # Se a última mensagem for do assistente, mostrar pergunta e resposta
         if (
             st.session_state.messages
             and st.session_state.messages[-1]["role"] == "assistant"
         ):
+            # Encontrar a última pergunta do usuário
+            last_user_question = None
+            for i in range(len(st.session_state.messages) - 1, -1, -1):
+                msg = st.session_state.messages[i]
+                if msg.get("role") == "user":
+                    content = msg.get("content", "")
+                    # Extrair a pergunta original se o contexto foi adicionado
+                    if "Pergunta do usuário:" in content:
+                        # Extrair a parte após "Pergunta do usuário:"
+                        parts = content.split("Pergunta do usuário:")
+                        if len(parts) > 1:
+                            last_user_question = parts[-1].strip()
+                        else:
+                            last_user_question = content
+                    else:
+                        last_user_question = content
+                    break
+            
             last_response = st.session_state.messages[-1]["content"]
 
+            # Exibir pergunta do usuário no topo
+            if last_user_question:
+               #st.markdown("### ❓ Sua Pergunta")
+                st.markdown(
+                    f"""
+                    <div class="user-question-box" style="padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                        <p style="margin: 0; font-size: 1.1rem; font-weight: 500; line-height: 1.6;">{last_user_question}</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            
             # Container para resposta
             st.markdown("### 📊 Resposta do Assistente")
             st.markdown("---")
@@ -1412,7 +1459,7 @@ with main_area:
     # Mostrar indicador de pensando acima do prompt se estiver pensando
     if st.session_state.is_thinking:
         st.markdown(
-            '<div class="thinking-above-prompt">💭 <em>Pensando...</em></div>',
+            '<div class="thinking-above-prompt">Pensando<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span></div>',
             unsafe_allow_html=True,
         )
 
