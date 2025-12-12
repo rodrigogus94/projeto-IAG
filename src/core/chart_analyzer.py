@@ -82,11 +82,36 @@ def extract_columns(user_input: str) -> List[str]:
         "km_mes", "velocidade_media", "alertas",
         "consumo_combustivel", "dias_operacionais", "custo_manutencao"
     ]
+    
+    # Mapeamento de termos comuns para colunas
+    term_mapping = {
+        "quilometragem": "km_mes",
+        "km": "km_mes",
+        "quilometragem mensal": "km_mes",
+        "velocidade": "velocidade_media",
+        "consumo": "consumo_combustivel",
+        "combustível": "consumo_combustivel",
+        "combustivel": "consumo_combustivel",
+        "custo": "custo_manutencao",
+        "manutenção": "custo_manutencao",
+        "manutencao": "custo_manutencao",
+        "dias": "dias_operacionais",
+        "operacionais": "dias_operacionais",
+    }
 
     user_input_lower = user_input.lower()
     found_columns = []
 
+    # Primeiro, verificar mapeamentos de termos
+    for term, col in term_mapping.items():
+        if term in user_input_lower and col not in found_columns:
+            found_columns.append(col)
+
+    # Depois, buscar colunas diretamente
     for col in known_columns:
+        if col in found_columns:
+            continue
+            
         # Buscar variações do nome da coluna
         patterns = [
             col,
@@ -229,21 +254,146 @@ def create_smart_chart(
         Objeto do gráfico ou None
     """
     try:
-        from src.core.chart_generator import generate_chart_from_request
+        from src.core.chart_generator import (
+            create_bar_chart, 
+            create_pie_chart, 
+            create_histogram,
+            create_line_chart,
+            create_scatter_chart,
+            create_box_plot,
+            create_heatmap
+        )
 
         # Detectar solicitação de gráfico
         chart_request = detect_chart_request(user_input)
         if not chart_request:
             return None
 
-        # Sugerir configuração
+        chart_type = chart_request.get("chart_type", "bar")
+        user_input_lower = user_input.lower()
+        
+        # Processar dados baseado no tipo de gráfico solicitado
+        if chart_type == "pie" or "pizza" in user_input_lower or "distribuição" in user_input_lower:
+            # Para gráfico de pizza, agrupar por categoria e contar
+            columns = chart_request.get("columns", [])
+            if columns:
+                category_col = columns[0]
+            elif "status" in user_input_lower:
+                category_col = "status"
+            elif "cidade" in user_input_lower:
+                category_col = "cidade"
+            elif "marca" in user_input_lower:
+                category_col = "marca"
+            else:
+                # Usar primeira coluna categórica (excluindo id_veiculo)
+                categorical_cols = [c for c in df.select_dtypes(include=["object"]).columns if c != "id_veiculo"]
+                if categorical_cols:
+                    category_col = categorical_cols[0]
+                else:
+                    return None
+            
+            if category_col not in df.columns:
+                return None
+            
+            # Agrupar e contar
+            df_grouped = df[category_col].value_counts().reset_index()
+            df_grouped.columns = [category_col, "count"]
+            
+            logger.info(f"Criando gráfico de pizza: {category_col} ({len(df_grouped)} categorias)")
+            
+            return create_pie_chart(
+                df_grouped,
+                values="count",
+                names=category_col,
+                title=f"Distribuição de Veículos por {category_col.title()}"
+            )
+        
+        elif chart_type == "bar" or chart_type == "barras":
+            # Para gráfico de barras, detectar colunas
+            columns = chart_request.get("columns", [])
+            user_input_lower = user_input.lower()
+            
+            # Detectar coluna categórica (X)
+            if "cidade" in user_input_lower or "cidade" in columns:
+                x_col = "cidade"
+            elif "marca" in user_input_lower or "marca" in columns:
+                x_col = "marca"
+            elif "status" in user_input_lower or "status" in columns:
+                x_col = "status"
+            elif "modelo" in user_input_lower or "modelo" in columns:
+                x_col = "modelo"
+            else:
+                # Usar colunas categóricas disponíveis (excluindo id_veiculo)
+                categorical_cols = [c for c in df.select_dtypes(include=["object"]).columns if c != "id_veiculo"]
+                x_col = categorical_cols[0] if categorical_cols else None
+            
+            # Detectar coluna numérica (Y)
+            if "km_mes" in user_input_lower or "km_mes" in columns or "quilometragem" in user_input_lower or "km" in user_input_lower:
+                y_col = "km_mes"
+            elif "consumo" in user_input_lower or "consumo_combustivel" in columns:
+                y_col = "consumo_combustivel"
+            elif "custo" in user_input_lower or "custo_manutencao" in columns:
+                y_col = "custo_manutencao"
+            elif "velocidade" in user_input_lower or "velocidade_media" in columns:
+                y_col = "velocidade_media"
+            elif "alertas" in user_input_lower or "alertas" in columns:
+                y_col = "alertas"
+            elif "dias" in user_input_lower or "dias_operacionais" in columns:
+                y_col = "dias_operacionais"
+            else:
+                # Usar primeira coluna numérica disponível
+                numeric_cols = list(df.select_dtypes(include=["int64", "float64"]).columns)
+                y_col = numeric_cols[0] if numeric_cols else None
+            
+            if not x_col or not y_col or x_col not in df.columns or y_col not in df.columns:
+                logger.warning(f"Colunas não encontradas: x={x_col}, y={y_col}. Colunas disponíveis: {list(df.columns)}")
+                return None
+            
+            # SEMPRE agrupar dados para gráficos de barras
+            # Agrupar por categoria e agregar valores numéricos
+            if "contar" in user_input_lower or "quantidade" in user_input_lower or "total de" in user_input_lower:
+                # Contar ocorrências
+                df_grouped = df.groupby(x_col).size().reset_index(name=y_col)
+            else:
+                # Somar valores numéricos por categoria
+                df_grouped = df.groupby(x_col)[y_col].sum().reset_index()
+            
+            logger.info(f"Criando gráfico de barras: {x_col} x {y_col} ({len(df_grouped)} grupos)")
+            
+            return create_bar_chart(
+                df_grouped,
+                x=x_col,
+                y=y_col,
+                title=f"{y_col.replace('_', ' ').title()} por {x_col.title()}"
+            )
+        
+        elif chart_type == "histogram":
+            # Para histograma, usar coluna numérica
+            columns = chart_request.get("columns", [])
+            if "km_mes" in user_input_lower or "km_mes" in columns:
+                column = "km_mes"
+            elif "consumo" in user_input_lower:
+                column = "consumo_combustivel"
+            else:
+                numeric_cols = list(df.select_dtypes(include=["int64", "float64"]).columns)
+                column = numeric_cols[0] if numeric_cols else None
+            
+            if not column or column not in df.columns:
+                return None
+            
+            return create_histogram(
+                df,
+                column=column,
+                title=f"Distribuição de {column.replace('_', ' ').title()}"
+            )
+        
+        # Outros tipos de gráfico
         chart_config = suggest_chart_for_data(df, user_input)
-        if not chart_config:
-            return None
-
-        # Gerar gráfico
-        chart = generate_chart_from_request(df, **chart_config)
-        return chart
+        if chart_config:
+            from src.core.chart_generator import generate_chart_from_request
+            return generate_chart_from_request(df, chart_config.get("chart_type", "bar"), **chart_config)
+        
+        return None
 
     except Exception as e:
         logger.error(f"Erro ao criar gráfico inteligente: {str(e)}", exc_info=True)

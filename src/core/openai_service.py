@@ -50,6 +50,27 @@ class OpenAIService:
             raise ValueError(
                 "OPENAI_API_KEY não encontrada. Configure no .env ou passe como parâmetro."
             )
+        
+        # Validar se não é um placeholder
+        if "sua-chave" in self.api_key.lower() or "sk-sua" in self.api_key.lower() or len(self.api_key) < 30:
+            raise ValueError(
+                "❌ **Chave de API inválida (placeholder detectado)**\n\n"
+                "A chave configurada parece ser um exemplo/placeholder.\n\n"
+                "**Como corrigir:**\n\n"
+                "1. **Obtenha uma chave válida:**\n"
+                "   - Acesse: https://platform.openai.com/account/api-keys\n"
+                "   - Faça login na sua conta OpenAI\n"
+                "   - Clique em \"Create new secret key\"\n"
+                "   - Copie a chave (ela começa com `sk-` e tem mais de 40 caracteres)\n\n"
+                "2. **Configure no arquivo `.env`:**\n"
+                "   - Abra o arquivo `.env` na raiz do projeto\n"
+                "   - Encontre a linha: `OPENAI_API_KEY=sk-sua-chave-api-aqui`\n"
+                "   - Substitua `sk-sua-chave-api-aqui` pela sua chave real\n"
+                "   - Salve o arquivo\n\n"
+                "3. **Reinicie o Streamlit:**\n"
+                "   - Pare o Streamlit (Ctrl+C)\n"
+                "   - Execute novamente: `streamlit run src/app.py`"
+            )
 
         self.client = OpenAI(api_key=self.api_key, timeout=timeout)
         self.timeout = timeout

@@ -157,8 +157,44 @@ class OpenAILLMHandler:
 
         except Exception as e:
             logger.error(f"Erro ao gerar resposta: {str(e)}", exc_info=True)
+            error_str = str(e)
+            
+            # Detectar erros específicos de API key
+            if "401" in error_str or "invalid_api_key" in error_str or "Incorrect API key" in error_str:
+                return """❌ **Chave de API inválida**
+
+A chave de API configurada no arquivo `.env` não é válida.
+
+**Como corrigir:**
+
+1. **Obtenha uma chave válida:**
+   - Acesse: https://platform.openai.com/account/api-keys
+   - Faça login na sua conta OpenAI
+   - Clique em "Create new secret key"
+   - Copie a chave (ela começa com `sk-`)
+
+2. **Configure no arquivo `.env`:**
+   - Abra o arquivo `.env` na raiz do projeto
+   - Encontre a linha: `OPENAI_API_KEY=sk-sua-chave-api-aqui`
+   - Substitua `sk-sua-chave-api-aqui` pela sua chave real
+   - Salve o arquivo
+
+3. **Reinicie o Streamlit:**
+   - Pare o Streamlit (Ctrl+C)
+   - Execute novamente: `streamlit run src/app.py`
+
+**Nota:** Certifique-se de que sua conta OpenAI tem créditos disponíveis."""
+            
+            # Detectar outros erros comuns
+            if "rate_limit" in error_str.lower():
+                return SYSTEM_MESSAGES.get("rate_limit", "Limite de requisições atingido. Aguarde um momento e tente novamente.")
+            
+            if "insufficient_quota" in error_str.lower() or "quota" in error_str.lower():
+                return SYSTEM_MESSAGES.get("insufficient_quota", "Cota insuficiente. Verifique seu plano OpenAI.")
+            
+            # Erro genérico
             error_msg = SYSTEM_MESSAGES.get("error", "Erro ao gerar resposta")
-            return f"{error_msg}: {str(e)}"
+            return f"{error_msg}: {error_str}"
 
     def _handle_stream_response(
         self, response_generator: Generator

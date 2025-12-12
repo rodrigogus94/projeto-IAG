@@ -363,16 +363,48 @@ def create_heatmap(
         return None
 
 
-def display_chart(chart: Any) -> None:
+def display_chart(chart: Any, key: str = None) -> None:
     """
-    Exibe um gráfico no Streamlit.
+    Exibe um gráfico no Streamlit com atualização forçada.
 
     Args:
         chart: Objeto do gráfico (Plotly)
+        key: Chave única para forçar atualização (opcional)
     """
     try:
         if chart is not None and PLOTLY_AVAILABLE:
-            st.plotly_chart(chart, use_container_width=True)
+            # Usar key única para forçar atualização do Streamlit
+            import hashlib
+            import time
+            
+            if key is None:
+                # Gerar key baseada no timestamp e conteúdo do gráfico
+                chart_str = str(chart.to_dict() if hasattr(chart, 'to_dict') else str(chart))
+                key = hashlib.md5(f"{chart_str}{time.time()}".encode()).hexdigest()[:12]
+            
+            # Atualizar layout para garantir renderização
+            if hasattr(chart, 'update_layout'):
+                chart.update_layout(
+                    autosize=True,
+                    height=500,
+                )
+            
+            # Renderizar com use_container_width para melhor responsividade
+            # Usar height=None para permitir que o gráfico se ajuste automaticamente
+            try:
+                st.plotly_chart(
+                    chart, 
+                    use_container_width=True,
+                    key=f"chart_{key}"
+                )
+            except Exception as plotly_error:
+                # Fallback se houver erro com key
+                logger.warning(f"Erro ao renderizar com key, tentando sem key: {plotly_error}")
+                st.plotly_chart(
+                    chart, 
+                    use_container_width=True
+                )
+            logger.debug(f"Gráfico exibido com sucesso (key: {key})")
         else:
             st.warning("Gráfico não disponível ou biblioteca não instalada")
     except Exception as e:

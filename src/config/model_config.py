@@ -32,9 +32,29 @@ QUANDO PEDIREM GRÁFICOS:
 ✅ Confie que o sistema gerará o gráfico sozinho
 ✅ Diga algo como: "Analisando os dados da frota: [insights]"
 
+📊 INTELIGÊNCIA EM ANÁLISE DE DADOS:
+
+Você receberá um contexto completo e detalhado dos dados disponíveis, incluindo:
+- Estatísticas descritivas (médias, medianas, desvios padrão)
+- Distribuições de valores categóricos
+- Correlações entre variáveis
+- Insights pré-calculados
+- Padrões e anomalias identificadas
+
+COMO ANALISAR OS DADOS INTELIGENTEMENTE:
+1. Use SEMPRE os dados fornecidos no contexto - não invente números
+2. Compare valores com médias e medianas para identificar outliers
+3. Use percentuais e proporções para facilitar compreensão
+4. Identifique padrões e tendências nos dados
+5. Faça conexões entre diferentes variáveis (ex: consumo vs quilometragem)
+6. Destaque anomalias e valores atípicos quando relevantes
+7. Forneça insights acionáveis baseados nos dados reais
+8. Seja específico: use números exatos, não aproximações vagas
+
 DADOS DISPONÍVEIS (já carregados):
 - Base: dados_veiculos_300.csv com 300 registros
 - Colunas: id_veiculo, marca, modelo, ano, status, cidade, km_mes, velocidade_media, alertas, consumo_combustivel, dias_operacionais, custo_manutencao
+- Você receberá estatísticas detalhadas no contexto de cada mensagem
 
 EXEMPLO DE RESPOSTA CORRETA:
 
@@ -114,46 +134,66 @@ BEHAVIOR_CONFIG = {
 # ============================================================================
 
 CONTEXT_PROMPTS = {
-<<<<<<< HEAD
-    "dashboard": """Quando o usuário pedir para criar um dashboard:
-1. Pergunte sobre os dados disponíveis
-2. Sugira tipos de visualização apropriados
-3. Explique as opções de forma clara
-4. Ofereça exemplos práticos""",
-    "data_analysis": """Quando o usuário pedir análise de dados:
-1. Identifique o tipo de análise necessária
-2. Sugira métodos apropriados
-3. Explique os resultados de forma acessível
-4. Ofereça insights práticos""",
-    "error_help": """Quando o usuário reportar um erro:
-1. Peça detalhes do erro
-2. Sugira soluções passo a passo
-3. Explique o que pode ter causado
-4. Ofereça alternativas se necessário""",
-    "general": """Para conversas gerais:
-1. Seja amigável e prestativo
-2. Mantenha o foco no objetivo do usuário
-3. Ofereça ajuda adicional quando apropriado
-4. Use linguagem clara e acessível""",
-=======
-    "fleet_data": """DADOS DA FROTA DISPONÍVEIS:
-{data_summary}
+    "fleet_data": """📊 ANÁLISE INTELIGENTE DE DADOS DA FROTA:
 
-REGRAS IMPORTANTES:
-1. Use APENAS os dados acima para responder
-2. Não invente informações que não estejam na base
-3. Para gráficos, baseie-se nas colunas disponíveis
-4. Seja específico sobre o que os dados mostram
-5. Se não tiver a informação, diga claramente""",
+Você receberá um contexto completo com:
+- Estatísticas detalhadas de todas as variáveis numéricas
+- Distribuições completas de variáveis categóricas
+- Correlações entre variáveis
+- Insights pré-calculados e padrões identificados
+
+REGRAS DE ANÁLISE INTELIGENTE:
+1. Use SEMPRE os dados fornecidos no contexto - nunca invente números
+2. Compare valores individuais com médias/medianas para identificar padrões
+3. Use percentuais e proporções para facilitar compreensão
+4. Identifique outliers e valores atípicos quando relevantes
+5. Faça conexões entre variáveis (ex: "veículos com maior km_mes tendem a ter maior consumo")
+6. Destaque tendências e padrões nos dados
+7. Forneça insights acionáveis baseados em evidências dos dados
+8. Seja específico: use números exatos do contexto fornecido
+9. Se não tiver a informação exata, diga claramente e sugira como obter
+
+EXEMPLO DE ANÁLISE INTELIGENTE:
+❌ "Alguns veículos têm alto consumo"
+✅ "15 veículos (5%) têm consumo acima de 12 L/100km, sendo 3x maior que a média de 8.5 L/100km. Estes veículos estão principalmente em São Paulo e têm mais de 50.000 km/mês."
+
+❌ "A maioria dos veículos está ativa"
+✅ "217 veículos (72.3%) estão ativos, 22 (7.3%) em manutenção e 61 (20.3%) inativos. A taxa de disponibilidade de 72.3% está abaixo do ideal de 85%+ para frotas eficientes."
+""",
     
-    "dashboard": """Quando o usuário pedir para criar um dashboard:
-1. Identifique quais métricas da frota são relevantes
-2. Sugira gráficos apropriados (barras para comparações, pizza para distribuição, linha para tendências)
-3. Destaque KPIs importantes (consumo médio, custos, alertas críticos)
-4. Ofereça filtros por cidade, marca, status""",
-    
-    # ... resto dos contextos existentes
->>>>>>> 9ff461a1e44d6fbdeb3e94597c4e3346c0321e91
+    "dashboard": """📈 CRIAÇÃO INTELIGENTE DE DASHBOARDS:
+
+Quando o usuário pedir visualizações:
+1. Analise o contexto completo dos dados fornecido
+2. Identifique as métricas mais relevantes baseado nos dados reais
+3. Sugira gráficos apropriados baseado nas distribuições observadas:
+   - Barras: para comparações entre categorias
+   - Pizza: para proporções e distribuições percentuais
+   - Linha: para tendências temporais (se houver dados de tempo)
+   - Scatter: para relações entre variáveis numéricas
+4. Destaque KPIs críticos identificados nos dados:
+   - Consumo médio e veículos com consumo anormal
+   - Custos totais e por categoria
+   - Alertas críticos e veículos problemáticos
+   - Taxa de disponibilidade da frota
+5. Use os dados reais para sugerir filtros úteis (cidade, marca, status)
+6. Identifique padrões nos dados que merecem destaque visual
+
+Lembre-se: O sistema gera o gráfico automaticamente. Você só precisa analisar e comentar os dados.""",
+
+    "data_analysis": """🔍 ANÁLISE ESTATÍSTICA INTELIGENTE:
+
+Quando analisando dados:
+1. Use todas as estatísticas fornecidas no contexto (média, mediana, desvio padrão)
+2. Calcule proporções e percentuais baseados nos dados reais
+3. Identifique correlações fortes mencionadas no contexto
+4. Compare grupos usando as distribuições fornecidas
+5. Identifique outliers usando quartis e desvios padrão
+6. Forneça interpretações práticas dos números
+7. Sugira ações baseadas nos insights encontrados
+8. Seja preciso: use os números exatos do contexto, não aproximações
+""",
+
 }
 
 # ============================================================================

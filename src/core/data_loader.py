@@ -175,3 +175,160 @@ def get_available_datasets() -> List[Dict[str, str]]:
 
     return datasets
 
+
+def get_intelligent_data_context(df: pd.DataFrame) -> str:
+    """
+    Gera um contexto rico e inteligente dos dados para melhorar a compreensão do modelo.
+    Inclui estatísticas detalhadas, distribuições, correlações e insights pré-calculados.
+
+    Args:
+        df: DataFrame do pandas
+
+    Returns:
+        String com contexto detalhado e inteligente dos dados
+    """
+    if df is None or df.empty:
+        return "Nenhum dado disponível."
+
+    try:
+        context_parts = []
+        
+        # Informações básicas
+        context_parts.append(f"📊 BASE DE DADOS: {len(df)} registros | {len(df.columns)} colunas")
+        context_parts.append(f"Colunas: {', '.join(df.columns.tolist())}")
+        
+        # Separar colunas por tipo
+        numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns.tolist()
+        categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
+        
+        context_parts.append(f"\n📈 COLUNAS NUMÉRICAS ({len(numeric_cols)}): {', '.join(numeric_cols)}")
+        context_parts.append(f"📋 COLUNAS CATEGÓRICAS ({len(categorical_cols)}): {', '.join(categorical_cols)}")
+        
+        # Estatísticas detalhadas para colunas numéricas
+        if numeric_cols:
+            context_parts.append("\n📊 ESTATÍSTICAS NUMÉRICAS:")
+            for col in numeric_cols:
+                stats = df[col].describe()
+                context_parts.append(
+                    f"  • {col}: "
+                    f"Média={stats['mean']:.2f}, "
+                    f"Mediana={stats['50%']:.2f}, "
+                    f"Min={stats['min']:.2f}, "
+                    f"Max={stats['max']:.2f}, "
+                    f"Desvio={stats['std']:.2f}"
+                )
+        
+        # Distribuições para colunas categóricas
+        if categorical_cols:
+            context_parts.append("\n📋 DISTRIBUIÇÕES CATEGÓRICAS:")
+            for col in categorical_cols:
+                value_counts = df[col].value_counts()
+                total = len(df)
+                top_values = value_counts.head(5)
+                context_parts.append(f"  • {col}:")
+                for val, count in top_values.items():
+                    pct = (count / total) * 100
+                    context_parts.append(f"    - {val}: {count} ({pct:.1f}%)")
+                if len(value_counts) > 5:
+                    context_parts.append(f"    ... e mais {len(value_counts) - 5} valores únicos")
+        
+        # Correlações entre variáveis numéricas (se houver pelo menos 2)
+        if len(numeric_cols) >= 2:
+            try:
+                corr_matrix = df[numeric_cols].corr()
+                # Encontrar correlações fortes (>0.5 ou <-0.5)
+                strong_corrs = []
+                for i in range(len(corr_matrix.columns)):
+                    for j in range(i+1, len(corr_matrix.columns)):
+                        corr_val = corr_matrix.iloc[i, j]
+                        if abs(corr_val) > 0.5:
+                            strong_corrs.append(
+                                (corr_matrix.columns[i], corr_matrix.columns[j], corr_val)
+                            )
+                
+                if strong_corrs:
+                    context_parts.append("\n🔗 CORRELAÇÕES FORTES (>0.5):")
+                    for col1, col2, corr in strong_corrs[:5]:  # Top 5 correlações
+                        context_parts.append(f"  • {col1} ↔ {col2}: {corr:.2f}")
+            except Exception as e:
+                logger.debug(f"Erro ao calcular correlações: {e}")
+        
+        # Insights pré-calculados específicos para dados de veículos
+        if 'status' in df.columns:
+            status_counts = df['status'].value_counts()
+            total = len(df)
+            context_parts.append("\n💡 INSIGHTS DE STATUS:")
+            for status, count in status_counts.items():
+                pct = (count / total) * 100
+                context_parts.append(f"  • {status.capitalize()}: {count} veículos ({pct:.1f}%)")
+            if 'ativo' in status_counts:
+                disponibilidade = (status_counts.get('ativo', 0) / total) * 100
+                context_parts.append(f"  • Taxa de disponibilidade: {disponibilidade:.1f}%")
+        
+        if 'cidade' in df.columns:
+            city_counts = df['cidade'].value_counts()
+            context_parts.append("\n🌍 DISTRIBUIÇÃO POR CIDADE:")
+            for city, count in city_counts.head(5).items():
+                pct = (count / len(df)) * 100
+                context_parts.append(f"  • {city}: {count} veículos ({pct:.1f}%)")
+        
+        if 'km_mes' in df.columns:
+            km_stats = df['km_mes'].describe()
+            context_parts.append("\n🚗 QUILOMETRAGEM MENSAL:")
+            context_parts.append(f"  • Média: {km_stats['mean']:.0f} km/mês")
+            context_parts.append(f"  • Mediana: {km_stats['50%']:.0f} km/mês")
+            context_parts.append(f"  • Total: {df['km_mes'].sum():,.0f} km/mês")
+        
+        if 'consumo_combustivel' in df.columns:
+            consumo_stats = df['consumo_combustivel'].describe()
+            context_parts.append("\n⛽ CONSUMO DE COMBUSTÍVEL:")
+            context_parts.append(f"  • Média: {consumo_stats['mean']:.2f} L/100km")
+            context_parts.append(f"  • Melhor: {consumo_stats['min']:.2f} L/100km")
+            context_parts.append(f"  • Pior: {consumo_stats['max']:.2f} L/100km")
+        
+        if 'custo_manutencao' in df.columns:
+            custo_stats = df['custo_manutencao'].describe()
+            total_custo = df['custo_manutencao'].sum()
+            context_parts.append("\n💰 CUSTOS DE MANUTENÇÃO:")
+            context_parts.append(f"  • Média: R$ {custo_stats['mean']:,.2f}")
+            context_parts.append(f"  • Total: R$ {total_custo:,.2f}")
+        
+        if 'alertas' in df.columns:
+            alertas_stats = df['alertas'].describe()
+            total_alertas = df['alertas'].sum()
+            veiculos_com_alertas = (df['alertas'] > 0).sum()
+            context_parts.append("\n⚠️ ALERTAS:")
+            context_parts.append(f"  • Total de alertas: {total_alertas}")
+            context_parts.append(f"  • Veículos com alertas: {veiculos_com_alertas} ({veiculos_com_alertas/len(df)*100:.1f}%)")
+            context_parts.append(f"  • Média por veículo: {alertas_stats['mean']:.2f}")
+        
+        # Valores ausentes
+        missing = df.isnull().sum()
+        if missing.sum() > 0:
+            context_parts.append("\n⚠️ VALORES AUSENTES:")
+            for col, count in missing[missing > 0].items():
+                pct = (count / len(df)) * 100
+                context_parts.append(f"  • {col}: {count} ({pct:.1f}%)")
+        else:
+            context_parts.append("\n✅ DADOS COMPLETOS: Nenhum valor ausente")
+        
+        # Sugestões de análises possíveis
+        context_parts.append("\n💡 ANÁLISES SUGERIDAS:")
+        if 'status' in df.columns and 'cidade' in df.columns:
+            context_parts.append("  • Distribuição de status por cidade")
+        if 'km_mes' in df.columns and 'consumo_combustivel' in df.columns:
+            context_parts.append("  • Relação entre quilometragem e consumo")
+        if 'custo_manutencao' in df.columns and 'status' in df.columns:
+            context_parts.append("  • Custos de manutenção por status")
+        if 'alertas' in df.columns:
+            context_parts.append("  • Veículos com mais alertas e suas características")
+        if 'marca' in df.columns:
+            context_parts.append("  • Comparação de marcas (consumo, custos, alertas)")
+        
+        return "\n".join(context_parts)
+        
+    except Exception as e:
+        logger.error(f"Erro ao gerar contexto inteligente: {str(e)}", exc_info=True)
+        # Fallback para resumo básico
+        return get_data_summary(df)
+

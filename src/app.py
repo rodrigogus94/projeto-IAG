@@ -84,7 +84,7 @@ try:
         list_history_sessions,
         auto_save_history,
     )
-    from src.core.data_loader import load_csv_data, get_data_info, get_data_summary
+    from src.core.data_loader import load_csv_data, get_data_info, get_data_summary, get_intelligent_data_context
     from src.core.chart_generator import (
         generate_chart_from_request,
         display_chart,
@@ -115,6 +115,9 @@ except ImportError as e:
         return None
 
     def get_data_summary(df):
+        return "Dados não disponíveis."
+    
+    def get_intelligent_data_context(df):
         return "Dados não disponíveis."
 
     def generate_chart_from_request(df, chart_type, **kwargs):
@@ -210,23 +213,41 @@ def process_audio_file(audio_file, transcription_method):
         Texto transcrito ou None em caso de erro
     """
     if not audio_file:
+        logger.warning("process_audio_file chamado com audio_file None")
         return None
     
     try:
-        if AUDIO_AVAILABLE:
-            transcribed_text = transcribe_audio(audio_file, method=transcription_method)
-            if transcribed_text:
-                return transcribed_text
-            else:
-                st.error("❌ Erro ao transcrever áudio. Verifique se o serviço está configurado.")
-                return None
+        if not AUDIO_AVAILABLE:
+            error_msg = "⚠️ Transcrição de áudio não disponível. Instale as dependências necessárias."
+            logger.warning(error_msg)
+            raise Exception(error_msg)
+        
+        logger.info(f"Processando áudio com método: {transcription_method}")
+        transcribed_text = transcribe_audio(audio_file, method=transcription_method)
+        
+        if transcribed_text and len(transcribed_text.strip()) > 0:
+            logger.info(f"Transcrição bem-sucedida: '{transcribed_text}'")
+            return transcribed_text
         else:
-            st.warning("⚠️ Transcrição de áudio não disponível. Instale as dependências necessárias.")
-            return None
+            error_msg = "Transcrição retornou texto vazio. Verifique se o áudio contém fala."
+            logger.warning(error_msg)
+            raise Exception(error_msg)
+            
+    except ValueError as e:
+        # Erros de validação - mostrar mensagem específica
+        error_msg = str(e)
+        logger.error(f"Erro de validação: {error_msg}")
+        raise Exception(error_msg)
+    except ImportError as e:
+        # Erro de importação (Whisper não instalado)
+        error_msg = f"Biblioteca não instalada: {str(e)}. Instale com: pip install openai-whisper"
+        logger.error(error_msg)
+        raise Exception(error_msg)
     except Exception as e:
-        st.error(f"❌ Erro na transcrição: {str(e)}")
-        logger.error(f"Erro ao transcrever áudio: {str(e)}", exc_info=True)
-        return None
+        error_msg = str(e)
+        logger.error(f"Erro ao transcrever áudio: {error_msg}", exc_info=True)
+        # Re-raise para que a UI possa mostrar a mensagem
+        raise Exception(f"Erro ao transcrever áudio: {error_msg}")
 
 
 def process_user_message(user_input):
@@ -273,18 +294,48 @@ def process_user_message(user_input):
             # Preparar contexto dos dados se disponível
             messages_to_send = st.session_state.messages.copy()
             
-            # Adicionar contexto dos dados na primeira mensagem
-            if len(messages_to_send) == 1 and st.session_state.veiculos_df is not None:
+            # Adicionar contexto inteligente dos dados quando disponível
+            if st.session_state.veiculos_df is not None:
                 df = st.session_state.veiculos_df
-                data_context = f"""[DADOS DISPONÍVEIS - Arquivo: dados_veiculos_300.csv]
-    Total: {len(df)} veículos | Colunas: {', '.join(df.columns.tolist())}
-    Status: Ativos={len(df[df['status'] == 'ativo'])}, Manutenção={len(df[df['status'] == 'manutencao'])}, Inativos={len(df[df['status'] == 'inativo'])}
-
-    [INSTRUÇÃO CRÍTICA] Este é um sistema web que gera gráficos AUTOMATICAMENTE. NUNCA forneça código Python. Apenas analise os dados e apresente insights. O gráfico já aparece sozinho na tela.
-
-    Pergunta: {user_input}"""
                 
-                messages_to_send[0] = {"role": "user", "content": data_context}
+                # Gerar contexto inteligente e rico dos dados
+                if DATA_AVAILABLE:
+                    try:
+                        intelligent_context = get_intelligent_data_context(df)
+                    except Exception as e:
+                        logger.warning(f"Erro ao gerar contexto inteligente: {e}")
+                        intelligent_context = f"Total: {len(df)} veículos | Colunas: {', '.join(df.columns.tolist())}"
+                else:
+                    intelligent_context = f"Total: {len(df)} veículos | Colunas: {', '.join(df.columns.tolist())}"
+                
+                # Adicionar contexto na primeira mensagem ou se for uma nova pergunta sobre dados
+                is_data_question = any(word in user_input.lower() for word in [
+                    'dados', 'veículo', 'veiculo', 'frota', 'gráfico', 'grafico', 
+                    'análise', 'analise', 'estatística', 'estatistica', 'status',
+                    'cidade', 'consumo', 'custo', 'alerta', 'quilometragem', 'km'
+                ])
+                
+                if len(messages_to_send) == 1 or is_data_question:
+                    data_context = f"""📊 CONTEXTO COMPLETO DOS DADOS DISPONÍVEIS:
+
+{intelligent_context}
+
+🚨 INSTRUÇÕES CRÍTICAS:
+- Este é um sistema web que gera gráficos AUTOMATICAMENTE
+- NUNCA forneça código Python, Matplotlib, Plotly ou Pandas
+- Apenas ANALISE os dados e apresente insights em texto
+- O gráfico já aparece automaticamente na tela quando solicitado
+- Use os dados acima para fornecer análises precisas e detalhadas
+- Seja específico com números, percentuais e comparações
+- Identifique padrões, tendências e anomalias nos dados
+
+Pergunta do usuário: {user_input}"""
+                    
+                    if len(messages_to_send) == 1:
+                        messages_to_send[0] = {"role": "user", "content": data_context}
+                    else:
+                        # Adicionar contexto antes da última mensagem
+                        messages_to_send[-1]["content"] = data_context
             
             # SEMPRE verificar se é pedido de gráfico e reforçar a instrução
             user_input_lower = user_input.lower()
@@ -376,39 +427,85 @@ def initialize_llm_handler():
 
 def render_chart_if_requested():
     """
-<<<<<<< HEAD
     Detecta se o usuário solicitou um gráfico e renderiza se apropriado.
+    Melhorado para garantir atualização correta dos gráficos.
     """
     if not (DATA_AVAILABLE and CHARTS_AVAILABLE and st.session_state.veiculos_df is not None):
         return
     
     try:
         from src.core.chart_analyzer import create_smart_chart, detect_chart_request
-        from src.core.chart_generator import create_bar_chart
+        from src.core.chart_generator import create_bar_chart, display_chart
         
-        # Verificar última mensagem do usuário
+        # Verificar se há mensagens suficientes
         if len(st.session_state.messages) < 2:
             return
         
-        last_user_message = st.session_state.messages[-2].get("content", "")
+        # Encontrar a última mensagem do usuário (pode estar em diferentes posições)
+        last_user_message = None
+        for i in range(len(st.session_state.messages) - 1, -1, -1):
+            msg = st.session_state.messages[i]
+            if msg.get("role") == "user":
+                content = msg.get("content", "")
+                # Extrair a pergunta original se o contexto foi adicionado
+                if "Pergunta do usuário:" in content:
+                    # Extrair a parte após "Pergunta do usuário:"
+                    parts = content.split("Pergunta do usuário:")
+                    if len(parts) > 1:
+                        last_user_message = parts[-1].strip()
+                    else:
+                        last_user_message = content
+                else:
+                    last_user_message = content
+                break
+        
+        if not last_user_message:
+            return
         
         # Detectar se é solicitação de gráfico
         chart_request = detect_chart_request(last_user_message)
         if not chart_request:
             return
         
+        # Usar uma chave única baseada na mensagem e timestamp para forçar atualização
+        import hashlib
+        import time
+        # Incluir timestamp para garantir que cada renderização seja única
+        unique_id = f"{last_user_message}_{len(st.session_state.messages)}"
+        message_hash = hashlib.md5(unique_id.encode()).hexdigest()[:8]
+        chart_key = f"chart_{message_hash}"
+        
+        # Sempre renderizar, mesmo se for o mesmo gráfico (garante atualização)
+        st.session_state.last_chart_key = chart_key
+        
         st.markdown("---")
         st.markdown("### 📈 Visualização Gerada")
         
-        # Criar gráfico inteligente
+        # Criar gráfico inteligente usando a mensagem original do usuário
         chart = create_smart_chart(st.session_state.veiculos_df, last_user_message)
         if chart:
-            display_chart(chart)
+            # Usar key única para forçar atualização
+            display_chart(chart, key=chart_key)
         else:
-            # Tentar gráfico padrão
+            # Tentar gráfico padrão baseado no tipo detectado
             df = st.session_state.veiculos_df
-            if "cidade" in df.columns and "km_mes" in df.columns:
-                # Agrupar por cidade
+            chart_type = chart_request.get("chart_type", "bar")
+            
+            if chart_type == "pie" and "status" in df.columns:
+                # Gráfico de pizza por status
+                status_counts = df['status'].value_counts().reset_index()
+                status_counts.columns = ['status', 'count']
+                from src.core.chart_generator import create_pie_chart
+                chart = create_pie_chart(
+                    status_counts,
+                    values='count',
+                    names='status',
+                    title="Distribuição de Veículos por Status"
+                )
+                if chart:
+                    display_chart(chart, key=f"{chart_key}_pie")
+            elif "cidade" in df.columns and "km_mes" in df.columns:
+                # Gráfico de barras padrão
                 df_grouped = df.groupby("cidade")["km_mes"].sum().reset_index()
                 chart = create_bar_chart(
                     df_grouped, 
@@ -417,9 +514,10 @@ def render_chart_if_requested():
                     title="Quilometragem Total por Cidade"
                 )
                 if chart:
-                    display_chart(chart)
+                    display_chart(chart, key=f"{chart_key}_bar")
     except Exception as e:
-        logger.warning(f"Erro ao gerar gráfico: {e}")
+        logger.error(f"Erro ao gerar gráfico: {e}", exc_info=True)
+        st.warning(f"⚠️ Erro ao gerar gráfico: {str(e)}")
 
 # Inicializar tema antes de usar
 if "theme" not in st.session_state:
@@ -866,14 +964,20 @@ with st.sidebar:
         if audio_file:
             st.audio(audio_file, format="audio/wav")
             with st.spinner("Transcrevendo áudio..."):
-                transcribed_text = process_audio_file(audio_file, st.session_state.transcription_method)
-                if transcribed_text:
-                    st.session_state.audio_transcribed = transcribed_text
+                try:
+                    transcribed_text = process_audio_file(audio_file, st.session_state.transcription_method)
+                    if transcribed_text:
+                        st.session_state.audio_transcribed = transcribed_text
+                        st.success(f"✅ Transcrição: **{transcribed_text}**")
+                except Exception as e:
+                    error_msg = str(e)
+                    # Remover prefixo "Erro ao transcrever áudio: " se presente para evitar duplicação
+                    if error_msg.startswith("Erro ao transcrever áudio: "):
+                        error_msg = error_msg.replace("Erro ao transcrever áudio: ", "")
+                    st.error(f"❌ {error_msg}")
+                    logger.error(f"Erro ao processar áudio: {error_msg}", exc_info=True)
 
             if st.session_state.audio_transcribed:
-                st.info(
-                    f"📝 Transcrição do áudio: **{st.session_state.audio_transcribed}**"
-                )
                 # Se houver transcrição, usar como input
                 if not user_input:
                     user_input = st.session_state.audio_transcribed
@@ -917,7 +1021,7 @@ with st.sidebar:
                     "`OPENAI_API_KEY=sk-sua-chave-aqui`"
                 )
 
-            if st.button("🔄 Conectar à OpenAI", use_container_width=True):
+            if st.button("🔄 Conectar à OpenAI", width='stretch'):
                 try:
                     if OPENAI_AVAILABLE:
                         # Usar API key do .env (não da interface)
@@ -992,7 +1096,7 @@ with st.sidebar:
 
         # Botão para reconectar
         provider_name = "Ollama" if st.session_state.llm_provider == "ollama" else "OpenAI"
-        if st.button(f"🔄 Reconectar ao {provider_name}", use_container_width=True):
+        if st.button(f"🔄 Reconectar ao {provider_name}", width='stretch'):
             try:
                 if st.session_state.llm_provider == "openai":
                     if OPENAI_AVAILABLE:
@@ -1120,7 +1224,7 @@ with st.sidebar:
             st.rerun()
 
         # Botão limpar chat
-        if st.button("🗑️ Limpar Chat", use_container_width=True):
+        if st.button("🗑️ Limpar Chat", width='stretch'):
             st.session_state.messages = []
             st.rerun()
 
@@ -1206,6 +1310,17 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
 
+    # Histórico completo (colapsável) - movido para a sidebar
+    if len(st.session_state.messages) > 2:
+        st.markdown("---")
+        with st.expander("📜 Histórico Completo da Conversa", expanded=False):
+            for i, message in enumerate(st.session_state.messages):
+                role_icon = "👤" if message["role"] == "user" else "🤖"
+                st.markdown(f"**{role_icon} {message['role'].title()}:**")
+                st.markdown(message["content"])
+                if i < len(st.session_state.messages) - 1:
+                    st.markdown("---")
+
 # Processar mensagem quando enviada da sidebar (texto ou áudio transcrito)
 if "user_input" in locals() and user_input:
     process_user_message(user_input)
@@ -1263,15 +1378,11 @@ with main_area:
             with response_container:
                 st.markdown(last_response)
 
-<<<<<<< HEAD
-                # Tentar gerar gráfico se o usuário solicitou
-                render_chart_if_requested()
-
                 # Botões de ação - apenas ícones
                 col1, col2, col3 = st.columns(3)
 
                 with col1:
-                    if st.button("🔄", use_container_width=True, key="btn_regenerar"):
+                    if st.button("🔄", width='stretch', key="btn_regenerar"):
                         # Remove última resposta e regenera
                         if len(st.session_state.messages) >= 2:
                             st.session_state.messages.pop()
@@ -1279,48 +1390,21 @@ with main_area:
                             st.rerun()
 
                 with col2:
-                    if st.button("📋", use_container_width=True, key="btn_copiar"):
+                    if st.button("📋", width='stretch', key="btn_copiar"):
                         st.success("Resposta copiada!")
 
                 with col3:
-                    if st.button("🗑️", use_container_width=True, key="btn_limpar"):
+                    if st.button("🗑️", width='stretch', key="btn_limpar"):
                         st.session_state.messages = []
                         st.rerun()
 
-=======
             # GERAR GRÁFICO AUTOMATICAMENTE (FORA do response_container)
+            # Forçar atualização do gráfico sempre que houver nova resposta
             render_chart_if_requested()
-
-            # Botões de ação - apenas ícones
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                if st.button("🔄", use_container_width=True, key="btn_regenerar"):
-                    # Remove última resposta e regenera
-                    if len(st.session_state.messages) >= 2:
-                        st.session_state.messages.pop()
-                        st.session_state.messages.pop()
-                        st.rerun()
-
-            with col2:
-                if st.button("📋", use_container_width=True, key="btn_copiar"):
-                    st.success("Resposta copiada!")
-
-            with col3:
-                if st.button("🗑️", use_container_width=True, key="btn_limpar"):
-                    st.session_state.messages = []
-                    st.rerun()
-
->>>>>>> 9ff461a1e44d6fbdeb3e94597c4e3346c0321e91
-        # Histórico completo (colapsável)
-        if len(st.session_state.messages) > 2:
-            with st.expander("📜 Histórico Completo da Conversa"):
-                for i, message in enumerate(st.session_state.messages):
-                    role_icon = "👤" if message["role"] == "user" else "🤖"
-                    st.markdown(f"**{role_icon} {message['role'].title()}:**")
-                    st.markdown(message["content"])
-                    if i < len(st.session_state.messages) - 1:
-                        st.markdown("---")
+        else:
+            # Mesmo se não houver resposta do assistente ainda, verificar se há solicitação de gráfico
+            # Isso garante que gráficos sejam exibidos mesmo em casos especiais
+            render_chart_if_requested()
 
     # Prompt e gravador sempre no centro, abaixo da tela
     st.markdown("<br><br>", unsafe_allow_html=True)  # Espaço antes do prompt
@@ -1346,14 +1430,20 @@ with main_area:
     if center_audio_file:
         st.audio(center_audio_file, format="audio/wav")
         with st.spinner("Transcrevendo áudio..."):
-            transcribed_text = process_audio_file(center_audio_file, st.session_state.transcription_method)
-            if transcribed_text:
-                st.session_state.audio_transcribed = transcribed_text
+            try:
+                transcribed_text = process_audio_file(center_audio_file, st.session_state.transcription_method)
+                if transcribed_text:
+                    st.session_state.audio_transcribed = transcribed_text
+                    st.success(f"✅ Transcrição: **{transcribed_text}**")
+            except Exception as e:
+                error_msg = str(e)
+                # Remover prefixo "Erro ao transcrever áudio: " se presente para evitar duplicação
+                if error_msg.startswith("Erro ao transcrever áudio: "):
+                    error_msg = error_msg.replace("Erro ao transcrever áudio: ", "")
+                st.error(f"❌ {error_msg}")
+                logger.error(f"Erro ao processar áudio: {error_msg}", exc_info=True)
 
         if st.session_state.audio_transcribed:
-            st.info(
-                f"📝 Transcrição do áudio: **{st.session_state.audio_transcribed}**"
-            )
             # Se houver transcrição, usar como input
             if not center_user_input:
                 center_user_input = st.session_state.audio_transcribed
