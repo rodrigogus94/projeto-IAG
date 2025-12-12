@@ -1,0 +1,3 @@
+# Este arquivo mantém a pasta data/ no Git
+# Os arquivos de dados não são versionados (estão no .gitignore)
+
