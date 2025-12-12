@@ -90,6 +90,7 @@ try:
         display_chart,
         PLOTLY_AVAILABLE,
     )
+    from src.core.agent_orchestrator import AgentOrchestrator
 
     LLM_AVAILABLE = True
     OPENAI_AVAILABLE = True
@@ -98,6 +99,7 @@ try:
     HISTORY_AVAILABLE = True
     DATA_AVAILABLE = True
     CHARTS_AVAILABLE = PLOTLY_AVAILABLE
+    AGENT_ORCHESTRATOR_AVAILABLE = True
 except ImportError as e:
     LLM_AVAILABLE = False
     OPENAI_AVAILABLE = False
@@ -106,6 +108,7 @@ except ImportError as e:
     HISTORY_AVAILABLE = False
     DATA_AVAILABLE = False
     CHARTS_AVAILABLE = False
+    AGENT_ORCHESTRATOR_AVAILABLE = False
     CUSTOM_CSS = ""
     logger.warning(f"Alguns módulos não foram encontrados: {str(e)}")
     st.warning(f"⚠️ Alguns módulos não foram encontrados: {str(e)}")
@@ -293,34 +296,121 @@ def process_user_message(user_input):
     
     # Gerar resposta (sem exibir mensagens do chat na área principal)
     full_response = ""
+    chart_to_display = None
     
     try:
-        # Preparar contexto dos dados se disponível
-        messages_to_send = st.session_state.messages.copy()
+        # Verificar se deve usar orquestrador de agentes
+        use_orchestrator = (
+            st.session_state.use_agent_orchestrator and
+            AGENT_ORCHESTRATOR_AVAILABLE and
+            st.session_state.agent_orchestrator is not None
+        )
         
-        # Adicionar contexto inteligente dos dados quando disponível
-        if st.session_state.veiculos_df is not None:
-            df = st.session_state.veiculos_df
+        if use_orchestrator:
+            # ============================================================
+            # MODO: Dois Agentes Especialistas (Orquestrador)
+            # ============================================================
+            logger.info("Usando orquestrador de agentes (dois agentes especialistas)")
             
-            # Gerar contexto inteligente e rico dos dados
-            if DATA_AVAILABLE:
-                try:
-                    intelligent_context = get_intelligent_data_context(df)
-                except Exception as e:
-                    logger.warning(f"Erro ao gerar contexto inteligente: {e}")
-                    intelligent_context = f"Total: {len(df)} veículos | Colunas: {', '.join(df.columns.tolist())}"
-            else:
-                intelligent_context = f"Total: {len(df)} veículos | Colunas: {', '.join(df.columns.tolist())}"
+            # Verificar se a pergunta é sobre dados antes de preparar contexto
+            user_input_lower = user_input.lower().strip()
             
-            # Adicionar contexto na primeira mensagem ou se for uma nova pergunta sobre dados
-            is_data_question = any(word in user_input.lower() for word in [
-                'dados', 'veículo', 'veiculo', 'frota', 'gráfico', 'grafico', 
+            # Palavras-chave que indicam que o usuário está perguntando sobre dados
+            data_keywords = [
+                'dados', 'veículo', 'veiculo', 'frota', 'gráfico', 'grafico', 'chart',
                 'análise', 'analise', 'estatística', 'estatistica', 'status',
-                'cidade', 'consumo', 'custo', 'alerta', 'quilometragem', 'km'
-            ])
+                'cidade', 'consumo', 'custo', 'alerta', 'quilometragem', 'km',
+                'marca', 'modelo', 'ano', 'velocidade', 'manutenção', 'manutencao',
+                'visualização', 'visualizacao', 'plot', 'mostre', 'exiba', 'crie', 'gere'
+            ]
             
-            if len(messages_to_send) == 1 or is_data_question:
-                data_context = f"""📊 CONTEXTO COMPLETO DOS DADOS DISPONÍVEIS:
+            # Verificar se é um cumprimento simples
+            greetings = ['bom dia', 'boa tarde', 'boa noite', 'olá', 'ola', 'oi', 'hey', 'e aí', 'e ai']
+            is_greeting = any(greeting in user_input_lower for greeting in greetings) and len(user_input.split()) <= 5
+            
+            # Só preparar contexto de dados se o usuário perguntar sobre dados
+            is_data_question = any(keyword in user_input_lower for keyword in data_keywords) and not is_greeting
+            
+            # Preparar contexto dos dados APENAS se for pergunta sobre dados
+            data_context = None
+            df = None
+            
+            if is_data_question and st.session_state.veiculos_df is not None:
+                df = st.session_state.veiculos_df
+                
+                # Gerar contexto inteligente e rico dos dados
+                if DATA_AVAILABLE:
+                    try:
+                        intelligent_context = get_intelligent_data_context(df)
+                        data_context = intelligent_context
+                    except Exception as e:
+                        logger.warning(f"Erro ao gerar contexto inteligente: {e}")
+                        data_context = f"Total: {len(df)} veículos | Colunas: {', '.join(df.columns.tolist())}"
+                else:
+                    data_context = f"Total: {len(df)} veículos | Colunas: {', '.join(df.columns.tolist())}"
+            else:
+                logger.info(f"Pergunta não é sobre dados ou é cumprimento. Não enviando contexto de dados.")
+            
+            # Adicionar delay mínimo para parecer mais humanizado
+            import time
+            min_delay = 1.5
+            time.sleep(min_delay)
+            
+            # Processar com orquestrador de agentes
+            result = st.session_state.agent_orchestrator.process_user_query(
+                user_input=user_input,
+                data_context=data_context,
+                df=df,
+                model=st.session_state.selected_model,
+                temperature=st.session_state.temperature,
+            )
+            
+            full_response = result.get("text_response", "")
+            chart_to_display = result.get("chart", None)
+            
+            # Armazenar gráfico no session_state para exibição posterior
+            if chart_to_display:
+                st.session_state.last_generated_chart = chart_to_display
+                st.session_state.last_chart_config = result.get("chart_config", None)
+            
+            logger.info(f"Orquestrador processou: resposta={len(full_response)} caracteres, gráfico={'sim' if chart_to_display else 'não'}")
+            
+            # Adicionar delay adicional baseado no tamanho da resposta
+            additional_delay = min(2.0, max(0.5, len(full_response) / 500))
+            time.sleep(additional_delay)
+            
+        else:
+            # ============================================================
+            # MODO: Tradicional (um único agente)
+            # ============================================================
+            logger.info("Usando modo tradicional (um único agente)")
+            
+            # Preparar contexto dos dados se disponível
+            messages_to_send = st.session_state.messages.copy()
+            
+            # Adicionar contexto inteligente dos dados quando disponível
+            if st.session_state.veiculos_df is not None:
+                df = st.session_state.veiculos_df
+                
+                # Gerar contexto inteligente e rico dos dados
+                if DATA_AVAILABLE:
+                    try:
+                        intelligent_context = get_intelligent_data_context(df)
+                    except Exception as e:
+                        logger.warning(f"Erro ao gerar contexto inteligente: {e}")
+                        intelligent_context = f"Total: {len(df)} veículos | Colunas: {', '.join(df.columns.tolist())}"
+                else:
+                    intelligent_context = f"Total: {len(df)} veículos | Colunas: {', '.join(df.columns.tolist())}"
+                
+                # Adicionar contexto na primeira mensagem ou se for uma nova pergunta sobre dados
+                is_data_question = any(word in user_input.lower() for word in [
+                    'dados', 'veículo', 'veiculo', 'frota', 'gráfico', 'grafico', 
+                    'análise', 'analise', 'estatística', 'estatistica', 'status',
+                    'cidade', 'consumo', 'custo', 'alerta', 'quilometragem', 'km'
+                ])
+                
+                if len(messages_to_send) == 1 or is_data_question:
+                    data_context = f"""📊 CONTEXTO COMPLETO DOS DADOS DISPONÍVEIS:
 
 {intelligent_context}
 
@@ -334,44 +424,44 @@ def process_user_message(user_input):
 - Identifique padrões, tendências e anomalias nos dados
 
 Pergunta do usuário: {user_input}"""
-                
-                if len(messages_to_send) == 1:
-                    messages_to_send[0] = {"role": "user", "content": data_context}
-                else:
-                    # Adicionar contexto antes da última mensagem
-                    messages_to_send[-1]["content"] = data_context
-        
-        # SEMPRE verificar se é pedido de gráfico e reforçar a instrução
-        user_input_lower = user_input.lower()
-        if any(palavra in user_input_lower for palavra in ['gráfico', 'grafico', 'chart', 'visualização', 'visualizacao', 'plot']):
-            # Modificar a última mensagem do usuário para incluir a instrução
-            ultima_msg = messages_to_send[-1]["content"]
-            messages_to_send[-1]["content"] = f"""🚨 IMPORTANTE: O sistema JÁ gera o gráfico automaticamente. NÃO forneça código. Apenas analise os dados.
+                    
+                    if len(messages_to_send) == 1:
+                        messages_to_send[0] = {"role": "user", "content": data_context}
+                    else:
+                        # Adicionar contexto antes da última mensagem
+                        messages_to_send[-1]["content"] = data_context
+            
+            # SEMPRE verificar se é pedido de gráfico e reforçar a instrução
+            user_input_lower = user_input.lower()
+            if any(palavra in user_input_lower for palavra in ['gráfico', 'grafico', 'chart', 'visualização', 'visualizacao', 'plot']):
+                # Modificar a última mensagem do usuário para incluir a instrução
+                ultima_msg = messages_to_send[-1]["content"]
+                messages_to_send[-1]["content"] = f"""🚨 IMPORTANTE: O sistema JÁ gera o gráfico automaticamente. NÃO forneça código. Apenas analise os dados.
 
     {ultima_msg}
 
     Responda APENAS com análise dos dados (números, percentuais, insights). O gráfico aparece sozinho."""
-        
-        # Adicionar delay mínimo para parecer mais humanizado (1-2 segundos)
-        import time
-        min_delay = 1.5  # Delay mínimo em segundos
-        time.sleep(min_delay)
-        
-        # Gerar resposta
-        response = st.session_state.llm_handler.generate_response(
-            messages=messages_to_send,
-            model=st.session_state.selected_model,
-            temperature=st.session_state.temperature,
-            stream=False,
-        )
-        
-        full_response = response
-        logger.info(f"Resposta gerada: {len(full_response)} caracteres")
-        
-        # Adicionar delay adicional baseado no tamanho da resposta (simular processamento)
-        # Delay adicional: 0.5-2 segundos baseado no tamanho
-        additional_delay = min(2.0, max(0.5, len(full_response) / 500))
-        time.sleep(additional_delay)
+            
+            # Adicionar delay mínimo para parecer mais humanizado (1-2 segundos)
+            import time
+            min_delay = 1.5  # Delay mínimo em segundos
+            time.sleep(min_delay)
+            
+            # Gerar resposta
+            response = st.session_state.llm_handler.generate_response(
+                messages=messages_to_send,
+                model=st.session_state.selected_model,
+                temperature=st.session_state.temperature,
+                stream=False,
+            )
+            
+            full_response = response
+            logger.info(f"Resposta gerada: {len(full_response)} caracteres")
+            
+            # Adicionar delay adicional baseado no tamanho da resposta (simular processamento)
+            # Delay adicional: 0.5-2 segundos baseado no tamanho
+            additional_delay = min(2.0, max(0.5, len(full_response) / 500))
+            time.sleep(additional_delay)
         
         # Limpar indicador de pensando
         thinking_placeholder.empty()
@@ -415,6 +505,8 @@ def initialize_session_state():
         "ollama_url": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
         "llm_provider": default_provider,  # OpenAI como padrão
         "transcription_method": os.getenv("TRANSCRIPTION_METHOD", default_transcription),  # OpenAI como padrão
+        "use_agent_orchestrator": True,  # Usar orquestrador de agentes por padrão
+        "agent_orchestrator": None,  # Será inicializado quando o handler estiver pronto
     }
     
     for key, value in defaults.items():
@@ -429,6 +521,15 @@ def initialize_session_state():
 def initialize_llm_handler():
     """Inicializa o handler LLM baseado no provedor selecionado."""
     if st.session_state.llm_handler is not None:
+        # Inicializar orquestrador se ainda não foi inicializado
+        if (st.session_state.use_agent_orchestrator and 
+            AGENT_ORCHESTRATOR_AVAILABLE and 
+            st.session_state.agent_orchestrator is None):
+            try:
+                st.session_state.agent_orchestrator = AgentOrchestrator(st.session_state.llm_handler)
+                logger.info("AgentOrchestrator inicializado")
+            except Exception as e:
+                logger.warning(f"Erro ao inicializar AgentOrchestrator: {str(e)}")
         return
     
     try:
@@ -444,6 +545,14 @@ def initialize_llm_handler():
         # Verificar conexão silenciosamente na inicialização
         if st.session_state.llm_handler:
             st.session_state.llm_handler.is_configured()
+            
+            # Inicializar orquestrador se habilitado
+            if (st.session_state.use_agent_orchestrator and AGENT_ORCHESTRATOR_AVAILABLE):
+                try:
+                    st.session_state.agent_orchestrator = AgentOrchestrator(st.session_state.llm_handler)
+                    logger.info("AgentOrchestrator inicializado")
+                except Exception as e:
+                    logger.warning(f"Erro ao inicializar AgentOrchestrator: {str(e)}")
     except Exception as e:
         st.session_state.llm_handler = None
         # Log do erro (pode ser útil para debug)
@@ -456,6 +565,7 @@ def render_chart_if_requested():
     """
     Detecta se o usuário solicitou um gráfico e renderiza se apropriado.
     Melhorado para garantir atualização correta dos gráficos.
+    Suporta gráficos gerados pelo orquestrador de agentes.
     """
     if not (DATA_AVAILABLE and CHARTS_AVAILABLE and st.session_state.veiculos_df is not None):
         return
@@ -463,6 +573,21 @@ def render_chart_if_requested():
     try:
         from src.core.chart_analyzer import create_smart_chart, detect_chart_request
         from src.core.chart_generator import create_bar_chart, display_chart
+        
+        # Verificar se há um gráfico gerado pelo orquestrador
+        if hasattr(st.session_state, 'last_generated_chart') and st.session_state.last_generated_chart:
+            chart = st.session_state.last_generated_chart
+            st.markdown("---")
+            st.markdown("### 📈 Visualização Gerada pelo Agente de Gráficos")
+            
+            import hashlib
+            import time
+            chart_key = hashlib.md5(f"{time.time()}_{len(st.session_state.messages)}".encode()).hexdigest()[:8]
+            display_chart(chart, key=f"orchestrator_chart_{chart_key}")
+            
+            # Limpar gráfico do session_state após exibir
+            st.session_state.last_generated_chart = None
+            return
         
         # Verificar se há mensagens suficientes
         if len(st.session_state.messages) < 2:
@@ -489,9 +614,23 @@ def render_chart_if_requested():
         if not last_user_message:
             return
         
-        # Detectar se é solicitação de gráfico
+        # Detectar se é solicitação EXPLÍCITA de gráfico
+        # Só gerar gráfico se o usuário explicitamente solicitou
         chart_request = detect_chart_request(last_user_message)
         if not chart_request:
+            logger.info(f"Nenhuma solicitação explícita de gráfico detectada na mensagem: {last_user_message[:100]}")
+            return
+        
+        # Verificação adicional: garantir que há palavras-chave explícitas
+        user_input_lower = last_user_message.lower()
+        explicit_keywords = [
+            'gráfico', 'grafico', 'chart', 'visualização', 'visualizacao',
+            'plot', 'mostre', 'exiba', 'crie', 'gere'
+        ]
+        has_explicit_request = any(keyword in user_input_lower for keyword in explicit_keywords)
+        
+        if not has_explicit_request:
+            logger.info("Solicitação de gráfico detectada, mas sem palavras-chave explícitas. Não gerando gráfico.")
             return
         
         # Usar uma chave única baseada na mensagem e timestamp para forçar atualização
@@ -1336,6 +1475,40 @@ with st.sidebar:
 
         st.markdown("---")
 
+        # Configuração do modo de agentes
+        if AGENT_ORCHESTRATOR_AVAILABLE:
+            st.markdown("### 🤖 Modo de Agentes")
+            use_orchestrator = st.checkbox(
+                "Usar dois agentes especialistas",
+                value=st.session_state.use_agent_orchestrator,
+                help="""Quando habilitado, o sistema usa dois agentes trabalhando em conjunto:
+                
+                • Agente de Análise: Entende perguntas e gera respostas textuais detalhadas
+                • Agente de Gráficos: Analisa a resposta e determina qual gráfico gerar
+                
+                Quando desabilitado, usa o modo tradicional (um único agente)."""
+            )
+            
+            if use_orchestrator != st.session_state.use_agent_orchestrator:
+                st.session_state.use_agent_orchestrator = use_orchestrator
+                # Reinicializar orquestrador se necessário
+                if use_orchestrator and st.session_state.llm_handler:
+                    try:
+                        st.session_state.agent_orchestrator = AgentOrchestrator(st.session_state.llm_handler)
+                        logger.info("AgentOrchestrator reinicializado")
+                    except Exception as e:
+                        logger.warning(f"Erro ao reinicializar AgentOrchestrator: {str(e)}")
+                elif not use_orchestrator:
+                    st.session_state.agent_orchestrator = None
+                st.rerun()
+            
+            if st.session_state.use_agent_orchestrator:
+                st.info("✅ Modo de dois agentes ativo: Agente de Análise + Agente de Gráficos")
+            else:
+                st.info("ℹ️ Modo tradicional: um único agente")
+
+        st.markdown("---")
+
         # Configuração de transcrição de áudio
         st.markdown("### 🎙️ Transcrição de Áudio")
         
@@ -1585,7 +1758,19 @@ with main_area:
             # Container para resposta com ID único para scroll
             response_id = f"response_{len(st.session_state.messages)}"
             st.markdown(f'<div id="{response_id}"></div>', unsafe_allow_html=True)
-            st.markdown("### 📊 Resposta do Assistente")
+            
+            # Verificar se estamos usando orquestrador e se há gráfico gerado
+            use_orchestrator = (
+                st.session_state.use_agent_orchestrator and
+                AGENT_ORCHESTRATOR_AVAILABLE and
+                st.session_state.agent_orchestrator is not None
+            )
+            
+            if use_orchestrator and hasattr(st.session_state, 'last_generated_chart') and st.session_state.last_generated_chart:
+                st.markdown("### 📊 Resposta do Agente de Análise")
+            else:
+                st.markdown("### 📊 Resposta do Assistente")
+            
             st.markdown("---")
 
             # Exibir resposta formatada
@@ -1602,6 +1787,9 @@ with main_area:
                         if len(st.session_state.messages) >= 2:
                             st.session_state.messages.pop()
                             st.session_state.messages.pop()
+                            # Limpar gráfico do orquestrador se existir
+                            if "last_generated_chart" in st.session_state:
+                                st.session_state.last_generated_chart = None
                             st.rerun()
 
                 with col2:
@@ -1611,10 +1799,14 @@ with main_area:
                 with col3:
                     if st.button("🗑️", width='stretch', key="btn_limpar"):
                         st.session_state.messages = []
+                        # Limpar gráfico do orquestrador se existir
+                        if "last_generated_chart" in st.session_state:
+                            st.session_state.last_generated_chart = None
                         st.rerun()
 
             # GERAR GRÁFICO AUTOMATICAMENTE (FORA do response_container)
             # Forçar atualização do gráfico sempre que houver nova resposta
+            # Isso funciona tanto para modo tradicional quanto para orquestrador
             render_chart_if_requested()
         else:
             # Mesmo se não houver resposta do assistente ainda, verificar se há solicitação de gráfico

@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 def detect_chart_request(user_input: str) -> Optional[Dict[str, Any]]:
     """
     Detecta se o usuário está pedindo um gráfico e extrai informações.
+    
+    IMPORTANTE: Só detecta se houver solicitação EXPLÍCITA de gráfico/visualização.
 
     Args:
         user_input: Texto da mensagem do usuário
@@ -22,17 +24,37 @@ def detect_chart_request(user_input: str) -> Optional[Dict[str, Any]]:
     """
     user_input_lower = user_input.lower()
 
-    # Palavras-chave para detectar solicitação de gráfico
-    chart_keywords = [
+    # Palavras-chave EXPLÍCITAS para detectar solicitação de gráfico
+    # Removidas palavras genéricas como "análise", "estatística" que não indicam gráfico
+    explicit_chart_keywords = [
         "gráfico", "grafico", "chart", "visualização", "visualizacao",
-        "plot", "gráfico de", "mostre", "exiba", "crie", "gere",
-        "dashboard", "análise", "analise", "estatística", "estatistica"
+        "plot", "gráfico de", "chart de", "visualização de",
+        "mostre um gráfico", "exiba um gráfico", "crie um gráfico", "gere um gráfico",
+        "mostre gráfico", "exiba gráfico", "crie gráfico", "gere gráfico",
+        "mostre chart", "exiba chart", "crie chart", "gere chart",
+        "mostre visualização", "exiba visualização", "crie visualização", "gere visualização",
+        "dashboard"  # Dashboard geralmente implica visualização
     ]
+    
+    # Palavras que indicam ação de visualização quando combinadas
+    action_keywords = ["mostre", "exiba", "crie", "gere", "faça", "construa"]
+    visualization_keywords = ["gráfico", "grafico", "chart", "visualização", "visualizacao", "plot"]
 
-    # Verificar se contém palavras-chave
-    has_chart_keyword = any(keyword in user_input_lower for keyword in chart_keywords)
+    # Verificar se contém palavras-chave explícitas
+    has_explicit_keyword = any(keyword in user_input_lower for keyword in explicit_chart_keywords)
+    
+    # Verificar combinação de ação + visualização (ex: "mostre um gráfico")
+    has_action_visualization = False
+    for action in action_keywords:
+        for viz in visualization_keywords:
+            if action in user_input_lower and viz in user_input_lower:
+                has_action_visualization = True
+                break
+        if has_action_visualization:
+            break
 
-    if not has_chart_keyword:
+    # Só retornar se houver solicitação EXPLÍCITA
+    if not (has_explicit_keyword or has_action_visualization):
         return None
 
     # Detectar tipo de gráfico
