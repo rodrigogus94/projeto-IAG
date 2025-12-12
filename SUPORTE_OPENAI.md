@@ -1,10 +1,10 @@
-# 🚀 Suporte a Modelos OpenAI - Documentação
+# Suporte a Modelos OpenAI - Documentação
 
-## 📋 Resumo
+##  Resumo
 
 Foi adicionado suporte completo para modelos LLM da OpenAI no projeto, permitindo escolher entre modelos locais (Ollama) e modelos da OpenAI.
 
-## ✨ Funcionalidades Adicionadas
+##  Funcionalidades Adicionadas
 
 ### 1. Seleção de Provedor
 - **Ollama**: Modelos locais (padrão)
@@ -18,7 +18,7 @@ Foi adicionado suporte completo para modelos LLM da OpenAI no projeto, permitind
 - `gpt-3.5-turbo` - Modelo rápido e econômico
 - `gpt-3.5-turbo-16k` - Versão com contexto maior
 
-## 📁 Arquivos Criados
+##  Arquivos Criados
 
 1. **`src/core/openai_service.py`**
    - Serviço para comunicação com a API da OpenAI
@@ -30,7 +30,7 @@ Foi adicionado suporte completo para modelos LLM da OpenAI no projeto, permitind
    - Similar ao `llm_handler.py`
    - Implementa a mesma interface para compatibilidade
 
-## 🔧 Como Usar
+##  Como Usar
 
 ### 1. Configurar API Key da OpenAI
 
@@ -40,7 +40,7 @@ OPENAI_API_KEY=sk-sua-chave-api-aqui
 ```
 
 **Opção B: Interface do Streamlit**
-- Vá em "⚙️ Configurações"
+- Vá em " Configurações"
 - Selecione "openai" como provedor
 - Digite sua API key no campo "OpenAI API Key"
 
@@ -48,7 +48,7 @@ OPENAI_API_KEY=sk-sua-chave-api-aqui
 
 1. Abra a aplicação Streamlit
 2. Na sidebar, expanda "⚙️ Configurações"
-3. Em "🤖 Provedor de IA", escolha:
+3. Em " Provedor de IA", escolha:
    - **Ollama**: Para modelos locais
    - **OpenAI**: Para modelos da OpenAI
 
@@ -56,7 +56,7 @@ OPENAI_API_KEY=sk-sua-chave-api-aqui
 
 1. Selecione "OpenAI" como provedor
 2. Configure sua API key (se ainda não estiver no .env)
-3. Clique em "🔄 Conectar à OpenAI"
+3. Clique em " Conectar à OpenAI"
 4. Aguarde a confirmação de conexão
 
 ### 4. Selecionar Modelo
@@ -65,7 +65,7 @@ Após conectar, você verá a lista de modelos disponíveis:
 - **Ollama**: Modelos instalados localmente
 - **OpenAI**: Modelos disponíveis da OpenAI
 
-## 🎯 Diferenças entre Ollama e OpenAI
+##  Diferenças entre Ollama e OpenAI
 
 | Característica | Ollama | OpenAI |
 |----------------|--------|--------|
@@ -76,7 +76,7 @@ Após conectar, você verá a lista de modelos disponíveis:
 | **Modelos** | Modelos open-source | Modelos proprietários |
 | **Internet** | Não requer | Requer conexão |
 
-## ⚙️ Configuração
+##  Configuração
 
 ### Variáveis de Ambiente
 
@@ -95,15 +95,15 @@ O timeout é compartilhado entre Ollama e OpenAI e pode ser configurado via:
 - Variável de ambiente `OLLAMA_TIMEOUT`
 - Arquivo `model_config.py`
 
-## 🔍 Status da Conexão
+##  Status da Conexão
 
 O status mostra:
-- ✅ **Conectado**: Provedor funcionando corretamente
-- ❌ **Erro**: Problema de conexão ou configuração
-- 📦 **Modelos**: Quantidade de modelos disponíveis
-- 💡 **Sugestões**: Dicas para resolver problemas
+-  **Conectado**: Provedor funcionando corretamente
+-  **Erro**: Problema de conexão ou configuração
+-  **Modelos**: Quantidade de modelos disponíveis
+-  **Sugestões**: Dicas para resolver problemas
 
-## 🐛 Solução de Problemas
+##  Solução de Problemas
 
 ### "OPENAI_API_KEY não configurada"
 **Solução**: Configure a API key no arquivo `.env` ou na interface
@@ -126,7 +126,7 @@ O status mostra:
 3. **Rate Limits**: A OpenAI tem limites de requisições por minuto/hora
 4. **Modelos**: Alguns modelos podem não estar disponíveis dependendo da sua conta
 
-## 🔄 Alternando entre Provedores
+##  Alternando entre Provedores
 
 Você pode alternar entre Ollama e OpenAI a qualquer momento:
 1. Vá em "⚙️ Configurações"
@@ -136,7 +136,7 @@ Você pode alternar entre Ollama e OpenAI a qualquer momento:
 
 O histórico de conversas é mantido ao alternar entre provedores.
 
-## 🚀 Próximos Passos
+##  Próximos Passos
 
 - [ ] Adicionar mais modelos OpenAI (quando disponíveis)
 - [ ] Suporte a streaming na UI
